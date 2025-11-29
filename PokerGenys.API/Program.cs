@@ -1,4 +1,4 @@
-﻿using Microsoft.OpenApi;
+﻿using Microsoft.OpenApi.Models;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using PokerGenys.Infrastructure.Data;
@@ -21,34 +21,23 @@ if (mongoSettings == null)
 // Registrar GuidSerializer con GuidRepresentation.Standard
 BsonSerializer.RegisterSerializer(new GuidSerializer(MongoDB.Bson.GuidRepresentation.Standard));
 
-// Inyección de MongoContext
-builder.Services.AddSingleton(new MongoContext(mongoSettings));
-
 // --------------------------
 // INYECCIÓN DE DEPENDENCIAS
 // --------------------------
+builder.Services.AddSingleton(new MongoContext(mongoSettings));
 builder.Services.AddScoped<ITournamentRepository, TournamentRepository>();
 builder.Services.AddScoped<ITournamentService, TournamentService>();
 
 // --------------------------
-// CONTROLLERS & SWAGGER
-// --------------------------
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "PokerGenys API", Version = "v1" });
-});
-
-// --------------------------
 // CORS
+// --------------------------
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
         policy.WithOrigins(
             "http://localhost:5173",
-            "http://192.168.80.22:5173",  // ← ESTE ES EL IMPORTANTE
+            "http://192.168.80.22:5173",
             "http://localhost:4000",
             "ws://localhost:4000"
         )
@@ -58,20 +47,34 @@ builder.Services.AddCors(options =>
     });
 });
 
-
-
+// --------------------------
+// CONTROLLERS & SWAGGER
+// --------------------------
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "PokerGenys API",
+        Version = "v1"
+    });
+});
 
 // --------------------------
 // BUILD APP
 // --------------------------
 var app = builder.Build();
 
-// Middlewares
-if (app.Environment.IsDevelopment())
+// --------------------------
+// MIDDLEWARES
+// --------------------------
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "PokerGenys API v1"));
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "PokerGenys API v1");
+    c.RoutePrefix = string.Empty; // Swagger como página por defecto
+});
 
 app.UseHttpsRedirection();
 app.UseCors();

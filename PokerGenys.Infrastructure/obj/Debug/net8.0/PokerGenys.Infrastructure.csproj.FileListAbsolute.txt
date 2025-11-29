@@ -15,3 +15,4 @@ C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Infrastructure\o
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Infrastructure\obj\Debug\net8.0\refint\PokerGenys.Infrastructure.dll
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Infrastructure\obj\Debug\net8.0\PokerGenys.Infrastructure.pdb
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Infrastructure\obj\Debug\net8.0\ref\PokerGenys.Infrastructure.dll
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Infrastructure\obj\Debug\net8.0\PokerGenys.Infrastructure.sourcelink.json

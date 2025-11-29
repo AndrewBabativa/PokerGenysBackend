@@ -17,3 +17,4 @@ C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Services\obj\Deb
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Services\obj\Debug\net8.0\refint\PokerGenys.Services.dll
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Services\obj\Debug\net8.0\PokerGenys.Services.pdb
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Services\obj\Debug\net8.0\ref\PokerGenys.Services.dll
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Services\obj\Debug\net8.0\PokerGenys.Services.sourcelink.json

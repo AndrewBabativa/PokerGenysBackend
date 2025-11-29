@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.4",
+  "openapi": "3.0.1",
   "info": {
     "title": "PokerGenys API",
     "version": "v1"
@@ -383,13 +383,5 @@
         "additionalProperties": false
       }
     }
-  },
-  "tags": [
-    {
-      "name": "Test"
-    },
-    {
-      "name": "Tournaments"
-    }
-  ]
+  }
 }

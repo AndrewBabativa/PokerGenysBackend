@@ -9,3 +9,4 @@ C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Shared\obj\Debug
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Shared\obj\Debug\net8.0\refint\PokerGenys.Shared.dll
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Shared\obj\Debug\net8.0\PokerGenys.Shared.pdb
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Shared\obj\Debug\net8.0\ref\PokerGenys.Shared.dll
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Shared\obj\Debug\net8.0\PokerGenys.Shared.sourcelink.json

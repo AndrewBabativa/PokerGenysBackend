@@ -48,7 +48,6 @@ C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\ne
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\net8.0\staticwebassets.build.json.cache
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\net8.0\staticwebassets.development.json
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\net8.0\staticwebassets.build.endpoints.json
-C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\net8.0\PokerGen.AAEBAD21.Up2Date
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\net8.0\PokerGenys.API.dll
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\net8.0\refint\PokerGenys.API.dll
@@ -56,3 +55,4 @@ C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\ne
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\net8.0\PokerGenys.API.genruntimeconfig.cache
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\net8.0\ref\PokerGenys.API.dll
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\net8.0\PokerGenys.API.sourcelink.json
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
