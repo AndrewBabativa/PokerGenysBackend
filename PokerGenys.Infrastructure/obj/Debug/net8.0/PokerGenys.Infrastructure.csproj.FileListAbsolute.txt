@@ -1,0 +1,17 @@
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Infrastructure\bin\Debug\net8.0\PokerGenys.Infrastructure.deps.json
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Infrastructure\bin\Debug\net8.0\PokerGenys.Infrastructure.dll
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Infrastructure\bin\Debug\net8.0\PokerGenys.Infrastructure.pdb
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Infrastructure\bin\Debug\net8.0\PokerGenys.Domain.dll
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Infrastructure\bin\Debug\net8.0\PokerGenys.Shared.dll
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Infrastructure\bin\Debug\net8.0\PokerGenys.Domain.pdb
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Infrastructure\bin\Debug\net8.0\PokerGenys.Shared.pdb
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Infrastructure\obj\Debug\net8.0\PokerGenys.Infrastructure.csproj.AssemblyReference.cache
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Infrastructure\obj\Debug\net8.0\PokerGenys.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Infrastructure\obj\Debug\net8.0\PokerGenys.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Infrastructure\obj\Debug\net8.0\PokerGenys.Infrastructure.AssemblyInfo.cs
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Infrastructure\obj\Debug\net8.0\PokerGenys.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Infrastructure\obj\Debug\net8.0\PokerGen.931549BD.Up2Date
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Infrastructure\obj\Debug\net8.0\PokerGenys.Infrastructure.dll
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Infrastructure\obj\Debug\net8.0\refint\PokerGenys.Infrastructure.dll
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Infrastructure\obj\Debug\net8.0\PokerGenys.Infrastructure.pdb
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Infrastructure\obj\Debug\net8.0\ref\PokerGenys.Infrastructure.dll

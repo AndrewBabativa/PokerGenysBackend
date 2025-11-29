@@ -1,0 +1,395 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "PokerGenys API",
+    "version": "v1"
+  },
+  "paths": {
+    "/api/Test/ping": {
+      "get": {
+        "tags": [
+          "Test"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Tournaments": {
+      "get": {
+        "tags": [
+          "Tournaments"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Tournaments"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Tournament"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Tournament"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Tournament"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Tournaments/{id}": {
+      "get": {
+        "tags": [
+          "Tournaments"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Tournaments"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Tournament"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Tournament"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Tournament"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Tournaments"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AddonConfig": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "addonCost": {
+            "type": "number",
+            "format": "double"
+          },
+          "addonHouseFee": {
+            "type": "number",
+            "format": "double"
+          },
+          "addonChips": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxAddonsPerPlayer": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "allowedLevel": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BlindLevel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "levelNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "durationSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "smallBlind": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bigBlind": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ante": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isBreak": {
+            "type": "boolean"
+          },
+          "allowRebuy": {
+            "type": "boolean"
+          },
+          "allowAddon": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BountyConfig": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "bountyCost": {
+            "type": "number",
+            "format": "double"
+          },
+          "prizePerPlayer": {
+            "type": "number",
+            "format": "double"
+          },
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "progressivePercentage": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PayoutTier": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "rank": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "percentage": {
+            "type": "number",
+            "format": "double"
+          },
+          "fixedAmount": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RebuyConfig": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "rebuyCost": {
+            "type": "number",
+            "format": "double"
+          },
+          "rebuyHouseFee": {
+            "type": "number",
+            "format": "double"
+          },
+          "rebuyChips": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "autoRebuy": {
+            "type": "boolean"
+          },
+          "maxRebuysPerPlayer": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "untilLevel": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SeatingConfiguration": {
+        "type": "object",
+        "properties": {
+          "tables": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "seatsPerTable": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "finalTableSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "initialSeatingMode": {
+            "type": "string",
+            "nullable": true
+          },
+          "tableBalancingMode": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Tournament": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "nullable": true
+          },
+          "buyIn": {
+            "type": "number",
+            "format": "double"
+          },
+          "fee": {
+            "type": "number",
+            "format": "double"
+          },
+          "guaranteed": {
+            "type": "number",
+            "format": "double"
+          },
+          "startingChips": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "seating": {
+            "$ref": "#/components/schemas/SeatingConfiguration"
+          },
+          "rebuyConfig": {
+            "$ref": "#/components/schemas/RebuyConfig"
+          },
+          "addonConfig": {
+            "$ref": "#/components/schemas/AddonConfig"
+          },
+          "bountyConfig": {
+            "$ref": "#/components/schemas/BountyConfig"
+          },
+          "levels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BlindLevel"
+            },
+            "nullable": true
+          },
+          "payouts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayoutTier"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Test"
+    },
+    {
+      "name": "Tournaments"
+    }
+  ]
+}

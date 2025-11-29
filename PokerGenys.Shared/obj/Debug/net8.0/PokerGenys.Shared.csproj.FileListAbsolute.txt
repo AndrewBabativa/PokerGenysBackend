@@ -1,0 +1,11 @@
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Shared\bin\Debug\net8.0\PokerGenys.Shared.deps.json
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Shared\bin\Debug\net8.0\PokerGenys.Shared.dll
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Shared\bin\Debug\net8.0\PokerGenys.Shared.pdb
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Shared\obj\Debug\net8.0\PokerGenys.Shared.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Shared\obj\Debug\net8.0\PokerGenys.Shared.AssemblyInfoInputs.cache
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Shared\obj\Debug\net8.0\PokerGenys.Shared.AssemblyInfo.cs
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Shared\obj\Debug\net8.0\PokerGenys.Shared.csproj.CoreCompileInputs.cache
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Shared\obj\Debug\net8.0\PokerGenys.Shared.dll
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Shared\obj\Debug\net8.0\refint\PokerGenys.Shared.dll
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Shared\obj\Debug\net8.0\PokerGenys.Shared.pdb
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Shared\obj\Debug\net8.0\ref\PokerGenys.Shared.dll

@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36705.20 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PokerGenys.Domain", "PokerGenys.Domain\PokerGenys.Domain.csproj", "{60B0282A-4A25-4629-8C03-A56B3362A798}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PokerGenys.Infrastructure", "PokerGenys.Infrastructure\PokerGenys.Infrastructure.csproj", "{64958C9A-F889-4552-BE80-31E0074C36C3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PokerGenys.Services", "PokerGenys.Services\PokerGenys.Services.csproj", "{13709FAD-4823-44F3-8F17-C25C76342E03}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PokerGenys.Shared", "PokerGenys.Shared\PokerGenys.Shared.csproj", "{36B02603-DFF7-4897-9D38-E97FDE4CDC12}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PokerGenys.API", "PokerGenys.API\PokerGenys.API.csproj", "{3EC96304-265E-4706-AC75-DAF757B76015}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{60B0282A-4A25-4629-8C03-A56B3362A798}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{60B0282A-4A25-4629-8C03-A56B3362A798}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{60B0282A-4A25-4629-8C03-A56B3362A798}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{60B0282A-4A25-4629-8C03-A56B3362A798}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64958C9A-F889-4552-BE80-31E0074C36C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64958C9A-F889-4552-BE80-31E0074C36C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64958C9A-F889-4552-BE80-31E0074C36C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64958C9A-F889-4552-BE80-31E0074C36C3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{13709FAD-4823-44F3-8F17-C25C76342E03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{13709FAD-4823-44F3-8F17-C25C76342E03}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{13709FAD-4823-44F3-8F17-C25C76342E03}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{13709FAD-4823-44F3-8F17-C25C76342E03}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36B02603-DFF7-4897-9D38-E97FDE4CDC12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36B02603-DFF7-4897-9D38-E97FDE4CDC12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36B02603-DFF7-4897-9D38-E97FDE4CDC12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36B02603-DFF7-4897-9D38-E97FDE4CDC12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3EC96304-265E-4706-AC75-DAF757B76015}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3EC96304-265E-4706-AC75-DAF757B76015}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3EC96304-265E-4706-AC75-DAF757B76015}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3EC96304-265E-4706-AC75-DAF757B76015}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {76541F4C-64CB-4C51-B3E6-8388A763D24C}
+	EndGlobalSection
+EndGlobal
