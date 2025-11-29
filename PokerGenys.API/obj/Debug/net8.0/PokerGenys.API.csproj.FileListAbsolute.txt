@@ -55,3 +55,4 @@ C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\ne
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\net8.0\PokerGenys.API.pdb
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\net8.0\PokerGenys.API.genruntimeconfig.cache
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\net8.0\ref\PokerGenys.API.dll
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\net8.0\PokerGenys.API.sourcelink.json

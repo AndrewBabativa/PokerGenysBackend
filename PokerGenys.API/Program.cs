@@ -1,4 +1,4 @@
-using Microsoft.OpenApi;
+Ôªøusing Microsoft.OpenApi;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using PokerGenys.Infrastructure.Data;
@@ -9,23 +9,23 @@ using PokerGenys.Shared;
 var builder = WebApplication.CreateBuilder(args);
 
 // --------------------------
-// CONFIGURACI”N DE MONGO
+// CONFIGURACI√ìN DE MONGO
 // --------------------------
 var mongoSettings = builder.Configuration
     .GetSection("MongoSettings")
     .Get<MongoSettings>();
 
 if (mongoSettings == null)
-    throw new Exception("MongoSettings no est· configurado en appsettings.json");
+    throw new Exception("MongoSettings no est√° configurado en appsettings.json");
 
 // Registrar GuidSerializer con GuidRepresentation.Standard
 BsonSerializer.RegisterSerializer(new GuidSerializer(MongoDB.Bson.GuidRepresentation.Standard));
 
-// InyecciÛn de MongoContext
+// Inyecci√≥n de MongoContext
 builder.Services.AddSingleton(new MongoContext(mongoSettings));
 
 // --------------------------
-// INYECCI”N DE DEPENDENCIAS
+// INYECCI√ìN DE DEPENDENCIAS
 // --------------------------
 builder.Services.AddScoped<ITournamentRepository, TournamentRepository>();
 builder.Services.AddScoped<ITournamentService, TournamentService>();
@@ -42,16 +42,24 @@ builder.Services.AddSwaggerGen(c =>
 
 // --------------------------
 // CORS
-// --------------------------
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("http://localhost:5173") // Puerto de React
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        policy.WithOrigins(
+            "http://localhost:5173",
+            "http://192.168.80.22:5173",  // ‚Üê ESTE ES EL IMPORTANTE
+            "http://localhost:4000",
+            "ws://localhost:4000"
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
     });
 });
+
+
+
 
 // --------------------------
 // BUILD APP
