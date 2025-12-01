@@ -40,7 +40,9 @@ builder.Services.AddCors(options =>
             "http://192.168.80.22:5173",
             "http://localhost:4000",
             "ws://localhost:4000",
-            "https://pokergenys.netlify.app"
+            "https://pokergenys.netlify.app",
+            "https://pokergenys.netlify.app:4000",
+            "ws://pokergenys.netlify.app:4000"
         )
         .AllowAnyHeader()
         .AllowAnyMethod()

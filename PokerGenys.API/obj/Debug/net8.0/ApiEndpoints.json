@@ -28,7 +28,7 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "tournament",
+        "Name": "t",
         "Type": "PokerGenys.Domain.Models.Tournament",
         "IsRequired": true
       }
@@ -65,7 +65,7 @@
         "IsRequired": true
       },
       {
-        "Name": "tournament",
+        "Name": "t",
         "Type": "PokerGenys.Domain.Models.Tournament",
         "IsRequired": true
       }
@@ -83,6 +83,90 @@
       {
         "Name": "id",
         "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
+    "Method": "GetRegistrations",
+    "RelativePath": "api/Tournaments/{id}/registrations",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
+    "Method": "AddRegistration",
+    "RelativePath": "api/Tournaments/{id}/registrations",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "reg",
+        "Type": "PokerGenys.Domain.Models.TournamentRegistration",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
+    "Method": "RemoveRegistration",
+    "RelativePath": "api/Tournaments/{id}/registrations/{regId}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "regId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
+    "Method": "AssignSeat",
+    "RelativePath": "api/Tournaments/{id}/registrations/{regId}/seat",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "regId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "req",
+        "Type": "PokerGenys.API.Controllers.TournamentsController\u002BSeatRequest",
         "IsRequired": true
       }
     ],
