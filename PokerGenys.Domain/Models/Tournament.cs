@@ -25,6 +25,20 @@ namespace PokerGenys.Domain.Models
         public List<PayoutTier> Payouts { get; set; } = new();
         public List<TournamentRegistration> Registrations { get; set; } = new();
 
+        // 🔹 Campos nuevos
+        public DateTime? StartTime { get; set; }   // Hora exacta de inicio
+        public int CurrentLevel { get; set; } = 1; // Nivel actual
+        public decimal PrizePool { get; set; } = 0;
+    }
+
+
+    public class TournamentState
+    {
+        public int CurrentLevel { get; set; }
+        public int TimeRemaining { get; set; } // en segundos
+        public string Status { get; set; } = "Scheduled";
+        public int RegisteredCount { get; set; }
+        public decimal PrizePool { get; set; }
     }
 
     public class SeatingConfiguration

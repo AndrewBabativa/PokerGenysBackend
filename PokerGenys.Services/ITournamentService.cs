@@ -17,5 +17,12 @@ namespace PokerGenys.Services
         Task<Tournament?> AddRegistrationAsync(Guid id, TournamentRegistration reg);
         Task<bool> RemoveRegistrationAsync(Guid id, Guid regId);
         Task<TournamentRegistration?> AssignSeatAsync(Guid tournamentId, Guid regId, string tableId, string seatId);
+
+        // =======================
+        // Nuevos métodos para estado en tiempo real
+        // =======================
+        Task<Tournament?> StartTournamentAsync(Guid id);                  // Inicia el torneo y registra StartTime
+        Task<TournamentState?> GetTournamentStateAsync(Guid id);          // Devuelve CurrentLevel, TimeRemaining, Status, etc.
+        Task<TournamentRegistration?> RegisterPlayerAsync(Guid id, string playerName); // Registro rápido y actualizar PrizePool
     }
 }

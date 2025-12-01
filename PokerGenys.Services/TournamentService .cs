@@ -67,5 +67,93 @@ namespace PokerGenys.Services
             await _repo.UpdateAsync(t);
             return reg;
         }
+
+        public async Task<Tournament?> StartTournamentAsync(Guid id)
+        {
+            var t = await _repo.GetByIdAsync(id);
+            if (t == null) return null;
+
+            t.StartTime = DateTime.UtcNow;
+            t.CurrentLevel = 1;
+            t.Status = "Running";
+
+            return await _repo.UpdateAsync(t);
+        }
+
+        public async Task<TournamentState?> GetTournamentStateAsync(Guid id)
+        {
+            var t = await _repo.GetByIdAsync(id);
+            if (t == null) return null;
+
+            if (!t.StartTime.HasValue)
+                return new TournamentState
+                {
+                    CurrentLevel = t.CurrentLevel,
+                    TimeRemaining = 0,
+                    Status = t.Status,
+                    RegisteredCount = t.Registrations.Count,
+                    PrizePool = t.PrizePool
+                };
+
+            // Calcular nivel actual y tiempo restante
+            var elapsedMs = (DateTime.UtcNow - t.StartTime.Value).TotalMilliseconds;
+            int currentLevel = t.CurrentLevel;
+            double levelStartMs = 0;
+            double timeRemaining = 0;
+
+            foreach (var lvl in t.Levels.OrderBy(l => l.LevelNumber))
+            {
+                double durationMs = lvl.DurationSeconds * 1000;
+                if (elapsedMs < levelStartMs + durationMs)
+                {
+                    timeRemaining = (levelStartMs + durationMs - elapsedMs) / 1000;
+                    break;
+                }
+                currentLevel++;
+                levelStartMs += durationMs;
+            }
+
+            if (currentLevel > t.Levels.Count)
+            {
+                currentLevel = t.Levels.Count;
+                timeRemaining = 0;
+            }
+
+            t.CurrentLevel = currentLevel;
+            await _repo.UpdateAsync(t);
+
+            return new TournamentState
+            {
+                CurrentLevel = t.CurrentLevel,
+                TimeRemaining = (int)Math.Ceiling(timeRemaining),
+                Status = t.Status,
+                RegisteredCount = t.Registrations.Count,
+                PrizePool = t.PrizePool
+            };
+        }
+
+
+        public async Task<TournamentRegistration?> RegisterPlayerAsync(Guid id, string playerName)
+        {
+            var t = await _repo.GetByIdAsync(id);
+            if (t == null) return null;
+
+            var reg = new TournamentRegistration
+            {
+                Id = Guid.NewGuid(),
+                PlayerName = playerName,
+                TournamentId = t.Id,
+                RegisteredAt = DateTime.UtcNow
+            };
+
+            t.Registrations.Add(reg);
+            t.PrizePool += t.BuyIn + t.Fee;
+
+            await _repo.UpdateAsync(t);
+            return reg;
+        }
+
+
     }
+
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using PokerGenys.Domain.Models;
 using PokerGenys.Services;
 using System;
@@ -83,5 +84,27 @@ namespace PokerGenys.API.Controllers
             var reg = await _service.AssignSeatAsync(id, regId, req.TableId, req.SeatId);
             return reg == null ? NotFound() : Ok(reg);
         }
+
+        [HttpPost("{id}/start")]
+        public async Task<IActionResult> StartTournament(Guid id)
+        {
+            var tournament = await _service.StartTournamentAsync(id);
+            return tournament == null ? NotFound() : Ok(tournament);
+        }
+
+        [HttpGet("{id}/state")]
+        public async Task<IActionResult> GetTournamentState(Guid id)
+        {
+            var state = await _service.GetTournamentStateAsync(id);
+            return state == null ? NotFound() : Ok(state);
+        }
+
+        [HttpPost("{id}/register")]
+        public async Task<IActionResult> RegisterPlayer(Guid id, [FromBody] string playerName)
+        {
+            var reg = await _service.RegisterPlayerAsync(id, playerName);
+            return reg == null ? NotFound() : Ok(reg);
+        }
+
     }
 }
