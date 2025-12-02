@@ -1,9 +1,5 @@
 ﻿using PokerGenys.Domain.Models;
 using PokerGenys.Infrastructure.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace PokerGenys.Services
 {
@@ -19,7 +15,7 @@ namespace PokerGenys.Services
         public Task<bool> DeleteAsync(Guid id) => _repo.DeleteAsync(id);
 
         // =============================================================
-        // REGISTRATIONS
+        // REGISTRATIONS 
         // =============================================================
 
         public async Task<List<TournamentRegistration>> GetRegistrationsAsync(Guid id)
@@ -80,57 +76,57 @@ namespace PokerGenys.Services
             return await _repo.UpdateAsync(t);
         }
 
-        public async Task<TournamentState?> GetTournamentStateAsync(Guid id)
-        {
-            var t = await _repo.GetByIdAsync(id);
-            if (t == null) return null;
+            public async Task<TournamentState?> GetTournamentStateAsync(Guid id)
+            {
+                var t = await _repo.GetByIdAsync(id);
+                if (t == null) return null;
 
-            if (!t.StartTime.HasValue)
+                if (!t.StartTime.HasValue)
+                    return new TournamentState
+                    {
+                        CurrentLevel = t.CurrentLevel,
+                        TimeRemaining = 0,
+                        Status = t.Status,
+                        RegisteredCount = t.Registrations.Count,
+                        PrizePool = t.PrizePool
+                    };
+
+                // Calcular nivel actual y tiempo restante
+                var elapsedMs = (DateTime.UtcNow - t.StartTime.Value).TotalMilliseconds;
+                int currentLevel = t.CurrentLevel;
+                double levelStartMs = 0;
+                double timeRemaining = 0;
+
+                foreach (var lvl in t.Levels.OrderBy(l => l.LevelNumber))
+                {
+                    double durationMs = lvl.DurationSeconds * 1000;
+                    if (elapsedMs < levelStartMs + durationMs)
+                    {
+                        timeRemaining = (levelStartMs + durationMs - elapsedMs) / 1000;
+                        break;
+                    }
+                    currentLevel++;
+                    levelStartMs += durationMs;
+                }
+
+                if (currentLevel > t.Levels.Count)
+                {
+                    currentLevel = t.Levels.Count;
+                    timeRemaining = 0;
+                }
+
+                t.CurrentLevel = currentLevel;
+                await _repo.UpdateAsync(t);
+
                 return new TournamentState
                 {
                     CurrentLevel = t.CurrentLevel,
-                    TimeRemaining = 0,
+                    TimeRemaining = (int)Math.Ceiling(timeRemaining),
                     Status = t.Status,
                     RegisteredCount = t.Registrations.Count,
                     PrizePool = t.PrizePool
                 };
-
-            // Calcular nivel actual y tiempo restante
-            var elapsedMs = (DateTime.UtcNow - t.StartTime.Value).TotalMilliseconds;
-            int currentLevel = t.CurrentLevel;
-            double levelStartMs = 0;
-            double timeRemaining = 0;
-
-            foreach (var lvl in t.Levels.OrderBy(l => l.LevelNumber))
-            {
-                double durationMs = lvl.DurationSeconds * 1000;
-                if (elapsedMs < levelStartMs + durationMs)
-                {
-                    timeRemaining = (levelStartMs + durationMs - elapsedMs) / 1000;
-                    break;
-                }
-                currentLevel++;
-                levelStartMs += durationMs;
             }
-
-            if (currentLevel > t.Levels.Count)
-            {
-                currentLevel = t.Levels.Count;
-                timeRemaining = 0;
-            }
-
-            t.CurrentLevel = currentLevel;
-            await _repo.UpdateAsync(t);
-
-            return new TournamentState
-            {
-                CurrentLevel = t.CurrentLevel,
-                TimeRemaining = (int)Math.Ceiling(timeRemaining),
-                Status = t.Status,
-                RegisteredCount = t.Registrations.Count,
-                PrizePool = t.PrizePool
-            };
-        }
 
 
         public async Task<TournamentRegistration?> RegisterPlayerAsync(Guid id, string playerName)
