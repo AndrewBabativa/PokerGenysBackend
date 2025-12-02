@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SignalR;
 using PokerGenys.Domain.Models;
 using PokerGenys.Services;
 using System;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace PokerGenys.API.Controllers
@@ -39,6 +40,27 @@ namespace PokerGenys.API.Controllers
             if (id != t.Id) return BadRequest("ID mismatch");
             return Ok(await _service.UpdateAsync(t));
         }
+
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> Patch(Guid id, [FromBody] JsonElement patch)
+        {
+            var tournament = await _service.GetByIdAsync(id);
+            if (tournament == null) return NotFound();
+
+            foreach (var prop in patch.EnumerateObject())
+            {
+                var property = typeof(Tournament).GetProperty(prop.Name);
+                if (property != null)
+                {
+                    var value = prop.Value.Deserialize(property.PropertyType);
+                    property.SetValue(tournament, value);
+                }
+            }
+
+            await _service.UpdateAsync(tournament);
+            return Ok(tournament);
+        }
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
