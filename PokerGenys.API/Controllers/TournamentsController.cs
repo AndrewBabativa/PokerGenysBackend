@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SignalR;
 using PokerGenys.Domain.Models;
 using PokerGenys.Services;
 using System;
+using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -49,15 +50,19 @@ namespace PokerGenys.API.Controllers
 
             foreach (var prop in patch.EnumerateObject())
             {
-                var property = typeof(Tournament).GetProperty(prop.Name);
+                var property = typeof(Tournament).GetProperty(prop.Name,
+                BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
                 if (property != null)
                 {
                     var value = prop.Value.Deserialize(property.PropertyType);
                     property.SetValue(tournament, value);
                 }
             }
+            if (tournament.Status.Equals("Running", StringComparison.OrdinalIgnoreCase) && tournament.CurrentLevel == 1)
+                tournament.StartTime = DateTime.Now;
 
             await _service.UpdateAsync(tournament);
+
             return Ok(tournament);
         }
 

@@ -74,6 +74,27 @@
   },
   {
     "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
+    "Method": "Patch",
+    "RelativePath": "api/Tournaments/{id}",
+    "HttpMethod": "PATCH",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "patch",
+        "Type": "System.Text.Json.JsonElement",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
     "Method": "Delete",
     "RelativePath": "api/Tournaments/{id}",
     "HttpMethod": "DELETE",
@@ -83,6 +104,27 @@
       {
         "Name": "id",
         "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
+    "Method": "RegisterPlayer",
+    "RelativePath": "api/Tournaments/{id}/register",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "playerName",
+        "Type": "System.String",
         "IsRequired": true
       }
     ],
@@ -167,6 +209,38 @@
       {
         "Name": "req",
         "Type": "PokerGenys.API.Controllers.TournamentsController\u002BSeatRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
+    "Method": "StartTournament",
+    "RelativePath": "api/Tournaments/{id}/start",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
+    "Method": "GetTournamentState",
+    "RelativePath": "api/Tournaments/{id}/state",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
         "IsRequired": true
       }
     ],
