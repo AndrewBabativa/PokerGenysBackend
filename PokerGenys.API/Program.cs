@@ -89,6 +89,7 @@ builder.Services.AddControllers()
         // IMPORTANTE: Esto hace que los Enums se vean como texto en Swagger/React
         // Ejemplo: Verás "Open" en vez de 0
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     });
 
 // ==========================================
