@@ -63,9 +63,28 @@ namespace PokerGenys.Services
 
         public async Task<DealerShift?> UpdateShiftAsync(DealerShift shift)
         {
+            // 1. Buscamos el turno original en la BD
             var existing = await _repo.GetShiftByIdAsync(shift.Id);
+
             if (existing == null) return null;
+
+            // 2. 🔥 PRESERVAMOS LOS DATOS VITALES DEL ORIGINAL 🔥
+            // Como el frontend a veces manda el objeto incompleto, restauramos los IDs
+            shift.DayId = existing.DayId;
+            shift.TableId = existing.TableId;
+            shift.DealerId = existing.DealerId;
+            shift.StartTime = existing.StartTime;
+            shift.CreatedAt = existing.CreatedAt;
+
+            // Mantenemos notas si no vienen nuevas
+            if (string.IsNullOrEmpty(shift.Notes))
+            {
+                shift.Notes = existing.Notes;
+            }
+
+            // 3. Ahora sí, actualizamos (shift ya tiene los IDs restaurados + el nuevo EndTime)
             await _repo.UpdateShiftAsync(shift);
+
             return shift;
         }
     }
