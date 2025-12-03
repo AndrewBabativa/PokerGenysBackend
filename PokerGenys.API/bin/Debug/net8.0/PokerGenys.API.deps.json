@@ -225,6 +225,9 @@
         }
       },
       "PokerGenys.Domain/1.0.0": {
+        "dependencies": {
+          "MongoDB.Bson": "3.5.2"
+        },
         "runtime": {
           "PokerGenys.Domain.dll": {
             "assemblyVersion": "1.0.0.0",

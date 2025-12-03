@@ -1,0 +1,48 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using PokerGenys.Domain.Models;
+using PokerGenys.Services;
+using System;
+using System.Threading.Tasks;
+
+namespace PokerGenys.API.Controllers
+{
+    [ApiController]
+    [Route("api/sessions")]
+    public class SessionsController : ControllerBase
+    {
+        private readonly ISessionService _service;
+
+        public SessionsController(ISessionService service)
+        {
+            _service = service;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var sessions = await _service.GetAllAsync();
+            return Ok(sessions);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] Session session)
+        {
+            var created = await _service.CreateAsync(session);
+            // Nota: Aquí se dispara la lógica de auto-creación de BuyIn en el servicio
+            return CreatedAtAction(nameof(GetAll), new { id = created.Id }, created);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] Session session)
+        {
+            if (id != session.Id)
+                return BadRequest("ID mismatch");
+
+            var updated = await _service.UpdateAsync(session);
+
+            if (updated == null) return NotFound();
+
+            return Ok(updated);
+        }
+    }
+}

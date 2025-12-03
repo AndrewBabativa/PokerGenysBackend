@@ -1,5 +1,252 @@
 [
   {
+    "ContainingType": "PokerGenys.API.Controllers.DealersController",
+    "Method": "GetShifts",
+    "RelativePath": "api/dealer-shifts",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dayId",
+        "Type": "System.Guid",
+        "IsRequired": false
+      },
+      {
+        "Name": "tableId",
+        "Type": "System.Nullable\u00601[[System.Guid, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.DealersController",
+    "Method": "AddShift",
+    "RelativePath": "api/dealer-shifts",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "shift",
+        "Type": "PokerGenys.Domain.Models.DealerShift",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.DealersController",
+    "Method": "UpdateShift",
+    "RelativePath": "api/dealer-shifts/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "shift",
+        "Type": "PokerGenys.Domain.Models.DealerShift",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.DealersController",
+    "Method": "GetDealers",
+    "RelativePath": "api/dealers",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.PlayersController",
+    "Method": "GetAll",
+    "RelativePath": "api/players",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.PlayersController",
+    "Method": "Create",
+    "RelativePath": "api/players",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "player",
+        "Type": "PokerGenys.Domain.Models.Player",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.PlayersController",
+    "Method": "Get",
+    "RelativePath": "api/players/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.PlayersController",
+    "Method": "Update",
+    "RelativePath": "api/players/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "player",
+        "Type": "PokerGenys.Domain.Models.Player",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.PlayersController",
+    "Method": "Delete",
+    "RelativePath": "api/players/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.SessionsController",
+    "Method": "GetAll",
+    "RelativePath": "api/sessions",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.SessionsController",
+    "Method": "Create",
+    "RelativePath": "api/sessions",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "session",
+        "Type": "PokerGenys.Domain.Models.Session",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.SessionsController",
+    "Method": "Update",
+    "RelativePath": "api/sessions/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "session",
+        "Type": "PokerGenys.Domain.Models.Session",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.TablesController",
+    "Method": "Get",
+    "RelativePath": "api/tables",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dayId",
+        "Type": "System.Guid",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.TablesController",
+    "Method": "Create",
+    "RelativePath": "api/tables",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "table",
+        "Type": "PokerGenys.Domain.Models.TableInstance",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.TablesController",
+    "Method": "Update",
+    "RelativePath": "api/tables/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "table",
+        "Type": "PokerGenys.Domain.Models.TableInstance",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "TestController",
     "Method": "Ping",
     "RelativePath": "api/Test/ping",
@@ -235,6 +482,106 @@
     "Method": "GetTournamentState",
     "RelativePath": "api/Tournaments/{id}/state",
     "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.WaitlistController",
+    "Method": "Get",
+    "RelativePath": "api/waitlist",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "tableId",
+        "Type": "System.Nullable\u00601[[System.Guid, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.WaitlistController",
+    "Method": "Add",
+    "RelativePath": "api/waitlist",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "req",
+        "Type": "PokerGenys.API.Controllers.WaitlistController\u002BAddWaitlistRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.WaitlistController",
+    "Method": "Remove",
+    "RelativePath": "api/waitlist/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.WaitlistController",
+    "Method": "Seat",
+    "RelativePath": "api/waitlist/{id}/seat",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.WorkingDaysController",
+    "Method": "GetAll",
+    "RelativePath": "api/working-days",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.WorkingDaysController",
+    "Method": "Create",
+    "RelativePath": "api/working-days",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.WorkingDaysController",
+    "Method": "Close",
+    "RelativePath": "api/working-days/{id}/close",
+    "HttpMethod": "PATCH",
     "IsController": true,
     "Order": 0,
     "Parameters": [

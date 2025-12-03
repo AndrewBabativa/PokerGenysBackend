@@ -1,16 +1,18 @@
-﻿using Microsoft.OpenApi.Models;
+﻿using Microsoft.AspNetCore.Http.Json;
+using Microsoft.OpenApi.Models;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using PokerGenys.Infrastructure.Data;
 using PokerGenys.Infrastructure.Repositories;
 using PokerGenys.Services;
 using PokerGenys.Shared;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --------------------------
-// CONFIGURACIÓN DE MONGO
-// --------------------------
+// ==========================================
+// 1. CONFIGURACIÓN DE MONGO DB
+// ==========================================
 var mongoSettings = builder.Configuration
     .GetSection("MongoSettings")
     .Get<MongoSettings>();
@@ -18,31 +20,59 @@ var mongoSettings = builder.Configuration
 if (mongoSettings == null)
     throw new Exception("MongoSettings no está configurado en appsettings.json");
 
-// Registrar GuidSerializer con GuidRepresentation.Standard
+// Registrar GuidSerializer para manejar GUIDs correctamente en Mongo
 BsonSerializer.RegisterSerializer(new GuidSerializer(MongoDB.Bson.GuidRepresentation.Standard));
 
-// --------------------------
-// INYECCIÓN DE DEPENDENCIAS
-// --------------------------
+// ==========================================
+// 2. INYECCIÓN DE DEPENDENCIAS (DI)
+// ==========================================
+
+// Contexto de Base de Datos (Singleton es seguro para MongoClient)
 builder.Services.AddSingleton(new MongoContext(mongoSettings));
+
+// --- TORNEOS (Lógica existente) ---
 builder.Services.AddScoped<ITournamentRepository, TournamentRepository>();
 builder.Services.AddScoped<ITournamentService, TournamentService>();
 
-// --------------------------
-// CORS
-// --------------------------
+// --- MESAS CASH (Nuevos módulos separados) ---
+
+// Working Days
+builder.Services.AddScoped<IWorkingDayRepository, WorkingDayRepository>();
+builder.Services.AddScoped<IWorkingDayService, WorkingDayService>();
+
+// Tables
+builder.Services.AddScoped<ITableRepository, TableRepository>();
+builder.Services.AddScoped<ITableService, TableService>();
+
+// Sessions
+builder.Services.AddScoped<ISessionRepository, SessionRepository>();
+builder.Services.AddScoped<ISessionService, SessionService>();
+
+// Dealers & Shifts
+builder.Services.AddScoped<IDealerRepository, DealerRepository>();
+builder.Services.AddScoped<IDealerService, DealerService>();
+
+// Waitlist
+builder.Services.AddScoped<IWaitlistRepository, WaitlistRepository>();
+builder.Services.AddScoped<IWaitlistService, WaitlistService>();
+
+// Players
+builder.Services.AddScoped<IPlayerRepository, PlayerRepository>();
+builder.Services.AddScoped<IPlayerService, PlayerService>();
+
+
+// ==========================================
+// 3. CONFIGURACIÓN CORS
+// ==========================================
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
         policy.WithOrigins(
-            "http://localhost:5173",
-            "http://192.168.80.22:5173",
-            "http://localhost:4000",
-            "ws://localhost:4000",
-            "https://pokergenys.netlify.app",
-            "https://pokergenys.netlify.app:4000",
-            "ws://pokergenys.netlify.app:4000"
+            "http://localhost:5173",            // Vite Local
+            "http://192.168.80.22:5173",        // Red Local IP
+            "http://localhost:4000",            // Backend Local
+            "https://pokergenys.netlify.app"    // Producción Frontend
         )
         .AllowAnyHeader()
         .AllowAnyMethod()
@@ -50,37 +80,58 @@ builder.Services.AddCors(options =>
     });
 });
 
-// --------------------------
-// CONTROLLERS & SWAGGER
-// --------------------------
-builder.Services.AddControllers();
+// ==========================================
+// 4. CONTROLLERS & JSON OPTIONS
+// ==========================================
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // IMPORTANTE: Esto hace que los Enums se vean como texto en Swagger/React
+        // Ejemplo: Verás "Open" en vez de 0
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
+
+// ==========================================
+// 5. SWAGGER GENERATOR
+// ==========================================
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "PokerGenys API",
-        Version = "v1"
+        Version = "v1",
+        Description = "API para gestión de Torneos y Mesas Cash en Tiempo Real"
     });
+
+    // Opcional: Esto ayuda si tienes nombres de clases repetidos en diferentes namespaces
+    c.CustomSchemaIds(type => type.ToString());
 });
 
-// --------------------------
-// BUILD APP
-// --------------------------
+// ==========================================
+// 6. BUILD APP
+// ==========================================
 var app = builder.Build();
 
-// --------------------------
-// MIDDLEWARES
-// --------------------------
+// ==========================================
+// 7. MIDDLEWARES PIPELINE
+// ==========================================
+
+// Swagger siempre habilitado para que puedas probar (o ponlo dentro de if (app.Environment.IsDevelopment()))
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "PokerGenys API v1");
-    c.RoutePrefix = string.Empty; // Swagger como página por defecto
+    // Esto hace que Swagger sea la página de inicio (localhost:port/)
+    c.RoutePrefix = string.Empty;
 });
 
 app.UseHttpsRedirection();
-app.UseCors();
+
+app.UseCors(); // CORS debe ir antes de MapControllers
+
+app.UseAuthorization(); // Si tienes auth en el futuro
+
 app.MapControllers();
 
 app.Run();

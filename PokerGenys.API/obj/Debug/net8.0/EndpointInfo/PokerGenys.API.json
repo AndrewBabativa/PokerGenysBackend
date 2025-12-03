@@ -2,9 +2,424 @@
   "openapi": "3.0.1",
   "info": {
     "title": "PokerGenys API",
+    "description": "API para gestión de Torneos y Mesas Cash en Tiempo Real",
     "version": "v1"
   },
   "paths": {
+    "/api/dealers": {
+      "get": {
+        "tags": [
+          "Dealers"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/dealer-shifts": {
+      "get": {
+        "tags": [
+          "Dealers"
+        ],
+        "parameters": [
+          {
+            "name": "dayId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "tableId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Dealers"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.DealerShift"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.DealerShift"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.DealerShift"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/dealer-shifts/{id}": {
+      "put": {
+        "tags": [
+          "Dealers"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.DealerShift"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.DealerShift"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.DealerShift"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/players": {
+      "get": {
+        "tags": [
+          "Players"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Players"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.Player"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.Player"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.Player"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/players/{id}": {
+      "get": {
+        "tags": [
+          "Players"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Players"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.Player"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.Player"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.Player"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Players"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/sessions": {
+      "get": {
+        "tags": [
+          "Sessions"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Sessions"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.Session"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.Session"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.Session"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/sessions/{id}": {
+      "put": {
+        "tags": [
+          "Sessions"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.Session"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.Session"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.Session"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/tables": {
+      "get": {
+        "tags": [
+          "Tables"
+        ],
+        "parameters": [
+          {
+            "name": "dayId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Tables"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.TableInstance"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.TableInstance"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.TableInstance"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/tables/{id}": {
+      "put": {
+        "tags": [
+          "Tables"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.TableInstance"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.TableInstance"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.TableInstance"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/Test/ping": {
       "get": {
         "tags": [
@@ -36,17 +451,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Tournament"
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.Tournament"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/Tournament"
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.Tournament"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/Tournament"
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.Tournament"
               }
             }
           }
@@ -99,17 +514,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Tournament"
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.Tournament"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/Tournament"
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.Tournament"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/Tournament"
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.Tournament"
               }
             }
           }
@@ -217,17 +632,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TournamentRegistration"
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.TournamentRegistration"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/TournamentRegistration"
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.TournamentRegistration"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/TournamentRegistration"
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.TournamentRegistration"
               }
             }
           }
@@ -300,17 +715,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SeatRequest"
+                "$ref": "#/components/schemas/PokerGenys.API.Controllers.TournamentsController+SeatRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/SeatRequest"
+                "$ref": "#/components/schemas/PokerGenys.API.Controllers.TournamentsController+SeatRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/SeatRequest"
+                "$ref": "#/components/schemas/PokerGenys.API.Controllers.TournamentsController+SeatRequest"
               }
             }
           }
@@ -409,11 +824,181 @@
           }
         }
       }
+    },
+    "/api/waitlist": {
+      "get": {
+        "tags": [
+          "Waitlist"
+        ],
+        "parameters": [
+          {
+            "name": "tableId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Waitlist"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.API.Controllers.WaitlistController+AddWaitlistRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.API.Controllers.WaitlistController+AddWaitlistRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.API.Controllers.WaitlistController+AddWaitlistRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/waitlist/{id}": {
+      "delete": {
+        "tags": [
+          "Waitlist"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/waitlist/{id}/seat": {
+      "post": {
+        "tags": [
+          "Waitlist"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/working-days": {
+      "get": {
+        "tags": [
+          "WorkingDays"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "WorkingDays"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/working-days/{id}/close": {
+      "patch": {
+        "tags": [
+          "WorkingDays"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
-      "AddonConfig": {
+      "PokerGenys.API.Controllers.TournamentsController+SeatRequest": {
+        "type": "object",
+        "properties": {
+          "tableId": {
+            "type": "string",
+            "nullable": true
+          },
+          "seatId": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PokerGenys.API.Controllers.WaitlistController+AddWaitlistRequest": {
+        "type": "object",
+        "properties": {
+          "tableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "playerId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PokerGenys.Domain.Models.AddonConfig": {
         "type": "object",
         "properties": {
           "enabled": {
@@ -442,7 +1027,16 @@
         },
         "additionalProperties": false
       },
-      "BlindLevel": {
+      "PokerGenys.Domain.Models.BankMethod": {
+        "enum": [
+          "Bancolombia",
+          "Nequi",
+          "Daviplata",
+          "Other"
+        ],
+        "type": "string"
+      },
+      "PokerGenys.Domain.Models.BlindLevel": {
         "type": "object",
         "properties": {
           "id": {
@@ -481,7 +1075,7 @@
         },
         "additionalProperties": false
       },
-      "BountyConfig": {
+      "PokerGenys.Domain.Models.BountyConfig": {
         "type": "object",
         "properties": {
           "enabled": {
@@ -506,7 +1100,62 @@
         },
         "additionalProperties": false
       },
-      "PayoutTier": {
+      "PokerGenys.Domain.Models.DealerShift": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dayId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dealerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PokerGenys.Domain.Models.PaymentMethod": {
+        "enum": [
+          "Cash",
+          "Transfer",
+          "Courtesy",
+          "Saldofavor"
+        ],
+        "type": "string"
+      },
+      "PokerGenys.Domain.Models.PaymentStatus": {
+        "enum": [
+          "Paid",
+          "Pending"
+        ],
+        "type": "string"
+      },
+      "PokerGenys.Domain.Models.PayoutTier": {
         "type": "object",
         "properties": {
           "id": {
@@ -528,7 +1177,25 @@
         },
         "additionalProperties": false
       },
-      "RebuyConfig": {
+      "PokerGenys.Domain.Models.Player": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PokerGenys.Domain.Models.RebuyConfig": {
         "type": "object",
         "properties": {
           "enabled": {
@@ -560,21 +1227,7 @@
         },
         "additionalProperties": false
       },
-      "SeatRequest": {
-        "type": "object",
-        "properties": {
-          "tableId": {
-            "type": "string",
-            "nullable": true
-          },
-          "seatId": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "SeatingConfiguration": {
+      "PokerGenys.Domain.Models.SeatingConfiguration": {
         "type": "object",
         "properties": {
           "tables": {
@@ -600,7 +1253,125 @@
         },
         "additionalProperties": false
       },
-      "Tournament": {
+      "PokerGenys.Domain.Models.Session": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dayId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "playerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stack": {
+            "type": "number",
+            "format": "double"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "initialBuyIn": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalInvestment": {
+            "type": "number",
+            "format": "double"
+          },
+          "cashOut": {
+            "type": "number",
+            "format": "double"
+          },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PokerGenys.Domain.Models.Transaction"
+            },
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": { },
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PokerGenys.Domain.Models.TableInstance": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dayId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/PokerGenys.Domain.Models.TableStatus"
+          },
+          "maxPlayers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "initialBuyInBase": {
+            "type": "number",
+            "format": "double"
+          },
+          "currentDealerId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": { },
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "closedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PokerGenys.Domain.Models.TableStatus": {
+        "enum": [
+          "Open",
+          "Closed"
+        ],
+        "type": "string"
+      },
+      "PokerGenys.Domain.Models.Tournament": {
         "type": "object",
         "properties": {
           "id": {
@@ -636,35 +1407,35 @@
             "format": "int32"
           },
           "seating": {
-            "$ref": "#/components/schemas/SeatingConfiguration"
+            "$ref": "#/components/schemas/PokerGenys.Domain.Models.SeatingConfiguration"
           },
           "rebuyConfig": {
-            "$ref": "#/components/schemas/RebuyConfig"
+            "$ref": "#/components/schemas/PokerGenys.Domain.Models.RebuyConfig"
           },
           "addonConfig": {
-            "$ref": "#/components/schemas/AddonConfig"
+            "$ref": "#/components/schemas/PokerGenys.Domain.Models.AddonConfig"
           },
           "bountyConfig": {
-            "$ref": "#/components/schemas/BountyConfig"
+            "$ref": "#/components/schemas/PokerGenys.Domain.Models.BountyConfig"
           },
           "levels": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/BlindLevel"
+              "$ref": "#/components/schemas/PokerGenys.Domain.Models.BlindLevel"
             },
             "nullable": true
           },
           "payouts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/PayoutTier"
+              "$ref": "#/components/schemas/PokerGenys.Domain.Models.PayoutTier"
             },
             "nullable": true
           },
           "registrations": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/TournamentRegistration"
+              "$ref": "#/components/schemas/PokerGenys.Domain.Models.TournamentRegistration"
             },
             "nullable": true
           },
@@ -684,7 +1455,7 @@
         },
         "additionalProperties": false
       },
-      "TournamentRegistration": {
+      "PokerGenys.Domain.Models.TournamentRegistration": {
         "type": "object",
         "properties": {
           "id": {
@@ -756,6 +1527,69 @@
           }
         },
         "additionalProperties": false
+      },
+      "PokerGenys.Domain.Models.Transaction": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PokerGenys.Domain.Models.TransactionType"
+          },
+          "category": {
+            "$ref": "#/components/schemas/PokerGenys.Domain.Models.TransactionCategory"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "paymentStatus": {
+            "$ref": "#/components/schemas/PokerGenys.Domain.Models.PaymentStatus"
+          },
+          "paymentMethod": {
+            "$ref": "#/components/schemas/PokerGenys.Domain.Models.PaymentMethod"
+          },
+          "bankMethod": {
+            "$ref": "#/components/schemas/PokerGenys.Domain.Models.BankMethod"
+          },
+          "transferProof": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PokerGenys.Domain.Models.TransactionCategory": {
+        "enum": [
+          "Restaurant",
+          "Other"
+        ],
+        "type": "string"
+      },
+      "PokerGenys.Domain.Models.TransactionType": {
+        "enum": [
+          "BuyIn",
+          "ReBuy",
+          "Sale",
+          "CashOut",
+          "Jackpot",
+          "DebtPayment"
+        ],
+        "type": "string"
       }
     }
   }

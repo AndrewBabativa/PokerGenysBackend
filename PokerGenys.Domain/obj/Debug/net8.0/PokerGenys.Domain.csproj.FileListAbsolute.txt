@@ -10,3 +10,4 @@ C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Domain\obj\Debug
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Domain\obj\Debug\net8.0\PokerGenys.Domain.pdb
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Domain\obj\Debug\net8.0\ref\PokerGenys.Domain.dll
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Domain\obj\Debug\net8.0\PokerGenys.Domain.sourcelink.json
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Domain\obj\Debug\net8.0\PokerGenys.Domain.csproj.AssemblyReference.cache
