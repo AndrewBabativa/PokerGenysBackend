@@ -11,10 +11,6 @@ namespace PokerGenys.Services
     {
         private readonly ITournamentRepository _repo;
 
-        // Configuración Hardcoded (Idealmente mover al modelo Tournament en el futuro)
-        private const int MAX_PLAYERS_PER_TABLE = 10;
-        private const int FINAL_TABLE_SIZE = 9;
-
         public TournamentService(ITournamentRepository repo)
         {
             _repo = repo;
@@ -179,7 +175,7 @@ namespace PokerGenys.Services
             // C. Datos para el cálculo
             var activePlayers = t.Registrations.Where(r => r.Status == "Active").ToList();
             int totalActiveWithNew = activePlayers.Count + 1;
-            int currentCapacity = t.Tables.Count * MAX_PLAYERS_PER_TABLE;
+            int currentCapacity = t.Tables.Count * t.Seating.SeatsPerTable;
 
             // 
 
@@ -192,13 +188,11 @@ namespace PokerGenys.Services
                 t.Tables.Add(newTable);
 
                 // 2. Identificar la mesa más llena para sacar gente de ahí
-                var crowdedTable = t.Tables
-                    .OrderByDescending(tb => activePlayers.Count(p => p.TableId == tb.Id))
-                    .First();
+                var crowdedTable = t.Tables.OrderByDescending(tb => activePlayers.Count(p => p.TableId == tb.Id)).First();
 
                 var playersInCrowded = activePlayers
                     .Where(p => p.TableId == crowdedTable.Id)
-                    .OrderByDescending(p => p.RegisteredAt) // Movemos a los últimos (o lógica random)
+                    .OrderByDescending(p => p.RegisteredAt)
                     .ToList();
 
                 // 3. Calcular cuántos mover (aprox la mitad para equilibrar 6 y 5)
@@ -213,7 +207,14 @@ namespace PokerGenys.Services
 
                 // 4. Asignar al NUEVO jugador a la mesa nueva también
                 reg.TableId = newTable.Id;
-                reg.SeatId = (playersToMove.Count + 1).ToString();
+                int seatCounter = 1;
+                foreach (var p in playersToMove)
+                {
+                    p.SeatId = seatCounter.ToString();
+                    seatCounter++;
+                }
+
+                reg.SeatId = seatCounter.ToString();
 
                 instructionType = "INFO_ALERT";
                 systemMessage = $"⚠️ SE ABRIÓ MESA {newTableNum}: Se movieron {playersToMove.Count} jugadores de Mesa {crowdedTable.TableNumber} para balancear.";
@@ -272,7 +273,7 @@ namespace PokerGenys.Services
             var activePlayers = t.Registrations.Where(r => r.Status == "Active").ToList();
 
             // 1. CHEQUEO DE MESA FINAL
-            if (t.Tables.Count > 1 && activePlayers.Count <= FINAL_TABLE_SIZE)
+            if (t.Tables.Count > 1 && activePlayers.Count <= t.Seating.FinalTableSize)
             {
                 return new RemoveResult
                 {
