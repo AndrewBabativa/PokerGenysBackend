@@ -23,6 +23,7 @@ namespace PokerGenys.Domain.Models
 
         public List<BlindLevel> Levels { get; set; } = new();
         public List<PayoutTier> Payouts { get; set; } = new();
+        public List<TournamentTable> Tables { get; set; } = new();
         public List<TournamentRegistration> Registrations { get; set; } = new();
 
         // 🔹 Campos nuevos

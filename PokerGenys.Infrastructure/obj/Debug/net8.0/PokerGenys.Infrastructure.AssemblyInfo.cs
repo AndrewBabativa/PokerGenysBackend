@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PokerGenys.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+553c3209fbe9c186860ee3ed71cfc5c4c0fba8d2")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1978f30bee7427f7ab0772b2de87495c14f6cbed")]
 [assembly: System.Reflection.AssemblyProductAttribute("PokerGenys.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PokerGenys.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

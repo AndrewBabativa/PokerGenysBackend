@@ -17,7 +17,9 @@ namespace PokerGenys.API.Controllers
 
         public TournamentsController(ITournamentService service) => _service = service;
 
-        // CRUD TORNEOS
+        // ============================================================
+        // CRUD BÁSICO TORNEOS (Sin Cambios)
+        // ============================================================
         [HttpGet]
         public async Task<IActionResult> GetAll() => Ok(await _service.GetAllAsync());
 
@@ -66,7 +68,6 @@ namespace PokerGenys.API.Controllers
             return Ok(tournament);
         }
 
-
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -75,7 +76,7 @@ namespace PokerGenys.API.Controllers
         }
 
         // ============================================================
-        // REGISTRATIONS
+        // GESTIÓN DE JUGADORES (MODIFICADO PARA LÓGICA INTELIGENTE)
         // ============================================================
 
         [HttpGet("{id}/registrations")]
@@ -85,6 +86,7 @@ namespace PokerGenys.API.Controllers
             return Ok(regs);
         }
 
+        // Este es el registro manual/legacy (sin lógica de mesa automática obligatoria)
         [HttpPost("{id}/registrations")]
         public async Task<IActionResult> AddRegistration(Guid id, [FromBody] TournamentRegistration reg)
         {
@@ -92,15 +94,35 @@ namespace PokerGenys.API.Controllers
             return t == null ? NotFound() : Ok(t);
         }
 
+        // ⚠️ CAMBIO IMPORTANTE: Eliminación con Instrucciones
         [HttpDelete("{id}/registrations/{regId}")]
         public async Task<IActionResult> RemoveRegistration(Guid id, Guid regId)
         {
-            var ok = await _service.RemoveRegistrationAsync(id, regId);
-            return ok ? NoContent() : NotFound();
+            // Ahora recibimos un objeto RemoveResult con instrucciones
+            var result = await _service.RemoveRegistrationAsync(id, regId);
+
+            if (!result.Success) return NotFound();
+
+            // Retornamos OK con el objeto JSON completo (InstructionType, Message, FromTable, ToTable)
+            // El Frontend usará esto para emitir al Socket
+            return Ok(result);
+        }
+
+        // ⚠️ CAMBIO IMPORTANTE: Registro Rápido con Instrucciones
+        [HttpPost("{id}/register")]
+        public async Task<IActionResult> RegisterPlayer(Guid id, [FromBody] string playerName)
+        {
+            // Ahora recibimos un RegistrationResult
+            var result = await _service.RegisterPlayerAsync(id, playerName);
+
+            if (result == null) return NotFound();
+
+            // Retornamos OK con el objeto JSON completo (Registration, SystemMessage, InstructionType)
+            return Ok(result);
         }
 
         // ============================================================
-        // SEATING
+        // SEATING & CONTROL (Sin Cambios mayores)
         // ============================================================
 
         public class SeatRequest { public string TableId { get; set; } = ""; public string SeatId { get; set; } = ""; }
@@ -125,13 +147,5 @@ namespace PokerGenys.API.Controllers
             var state = await _service.GetTournamentStateAsync(id);
             return state == null ? NotFound() : Ok(state);
         }
-
-        [HttpPost("{id}/register")]
-        public async Task<IActionResult> RegisterPlayer(Guid id, [FromBody] string playerName)
-        {
-            var reg = await _service.RegisterPlayerAsync(id, playerName);
-            return reg == null ? NotFound() : Ok(reg);
-        }
-
     }
 }
