@@ -42,7 +42,7 @@ namespace PokerGenys.Services
                 Id = Guid.NewGuid(),
                 TableId = tableId,
                 PlayerId = playerId,
-                PlayerName = player.Name,
+                PlayerName = player.FirstName + " " + player.LastName,
                 Priority = nextPriority,
                 RegisteredAt = DateTime.UtcNow
             };
