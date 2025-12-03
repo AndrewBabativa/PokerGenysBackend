@@ -22,7 +22,16 @@ namespace PokerGenys.Domain.Models
 
         public Guid? CurrentDealerId { get; set; }
 
-        // Flexible para guardar configuraciones visuales o extras sin migrar DB
+        // --- NUEVOS CAMPOS ---
+
+        // Usamos decimal para dinero (mejor precisión que double)
+        // Nullable (?) porque al crear la mesa esto aún no existe
+        public decimal? TotalRake { get; set; }
+
+        public string? CloseNotes { get; set; }
+
+        // ---------------------
+
         public Dictionary<string, object>? Metadata { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
