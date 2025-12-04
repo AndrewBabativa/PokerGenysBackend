@@ -11,29 +11,38 @@ namespace PokerGenys.Services
     {
         private readonly ITournamentRepository _repo;
 
-        public TournamentService(ITournamentRepository repo) => _repo = repo;
+        public TournamentService(ITournamentRepository repo)
+        {
+            _repo = repo;
+        }
 
-        // ... CRUD BÁSICO (GetAll, GetById, Create, Update, Delete) SE MANTIENEN IGUAL ...
+        // =============================================================
+        // 1. CRUD BÁSICO
+        // =============================================================
         public Task<List<Tournament>> GetAllAsync() => _repo.GetAllAsync();
         public Task<Tournament?> GetByIdAsync(Guid id) => _repo.GetByIdAsync(id);
         public Task<Tournament> CreateAsync(Tournament tournament) => _repo.CreateAsync(tournament);
         public Task<Tournament> UpdateAsync(Tournament tournament) => _repo.UpdateAsync(tournament);
         public Task<bool> DeleteAsync(Guid id) => _repo.DeleteAsync(id);
-        public async Task<List<TournamentRegistration>> GetRegistrationsAsync(Guid id) { var t = await _repo.GetByIdAsync(id); return t?.Registrations ?? new(); }
-        public async Task<Tournament?> StartTournamentAsync(Guid id) { var t = await _repo.GetByIdAsync(id); if (t == null) return null; t.StartTime = DateTime.UtcNow; t.CurrentLevel = 1; t.Status = "Running"; return await _repo.UpdateAsync(t); }
-        public async Task<TournamentState?> GetTournamentStateAsync(Guid id) { /* ... Tu lógica de timer existente ... */ return null; } // Resumido para brevedad
+
+        public async Task<List<TournamentRegistration>> GetRegistrationsAsync(Guid id)
+        {
+            var t = await _repo.GetByIdAsync(id);
+            return t?.Registrations ?? new();
+        }
 
         // =============================================================
-        // LÓGICA DE GESTIÓN DE JUGADORES
+        // 2. GESTIÓN MANUAL / LEGACY
         // =============================================================
-
         public async Task<Tournament?> AddRegistrationAsync(Guid id, TournamentRegistration reg)
         {
             var t = await _repo.GetByIdAsync(id);
             if (t == null) return null;
+
             reg.Id = Guid.NewGuid();
             reg.TournamentId = id;
             reg.RegisteredAt = DateTime.UtcNow;
+
             t.Registrations.Add(reg);
             return await _repo.UpdateAsync(t);
         }
@@ -50,20 +59,86 @@ namespace PokerGenys.Services
             reg.TableId = tableId;
             reg.SeatId = seatId;
 
-            // LIMPIEZA AUTOMÁTICA: Si la mesa antigua quedó vacía, borrarla
+            // LIMPIEZA AUTOMÁTICA: Cerrar mesas que quedaron vacías tras el movimiento
             CleanupEmptyTables(t);
 
             await _repo.UpdateAsync(t);
             return reg;
         }
 
+        // =============================================================
+        // 3. CONTROL DE TIEMPO
+        // =============================================================
+        public async Task<Tournament?> StartTournamentAsync(Guid id)
+        {
+            var t = await _repo.GetByIdAsync(id);
+            if (t == null) return null;
+
+            t.StartTime = DateTime.UtcNow;
+            t.CurrentLevel = 1;
+            t.Status = "Running";
+
+            return await _repo.UpdateAsync(t);
+        }
+
+        public async Task<TournamentState?> GetTournamentStateAsync(Guid id)
+        {
+            // ... (Tu lógica de timer se mantiene igual, omitida por brevedad) ...
+            // Asegúrate de copiar la implementación completa que tenías antes aquí.
+            var t = await _repo.GetByIdAsync(id);
+            if (t == null) return null;
+
+            if (!t.StartTime.HasValue) return new TournamentState { CurrentLevel = t.CurrentLevel, TimeRemaining = 0, Status = t.Status, RegisteredCount = t.Registrations.Count, PrizePool = t.PrizePool };
+
+            var elapsedMs = (DateTime.UtcNow - t.StartTime.Value).TotalMilliseconds;
+            int currentLevel = 1;
+            double levelStartMs = 0;
+            double timeRemaining = 0;
+            bool levelFound = false;
+
+            foreach (var lvl in t.Levels.OrderBy(l => l.LevelNumber))
+            {
+                double durationMs = lvl.DurationSeconds * 1000;
+                if (elapsedMs < levelStartMs + durationMs)
+                {
+                    timeRemaining = (levelStartMs + durationMs - elapsedMs) / 1000;
+                    currentLevel = lvl.LevelNumber;
+                    levelFound = true;
+                    break;
+                }
+                levelStartMs += durationMs;
+            }
+
+            if (!levelFound) { currentLevel = t.Levels.Count + 1; timeRemaining = 0; }
+
+            if (t.CurrentLevel != currentLevel) { t.CurrentLevel = currentLevel; await _repo.UpdateAsync(t); }
+
+            return new TournamentState { CurrentLevel = currentLevel, TimeRemaining = (int)Math.Ceiling(timeRemaining), Status = t.Status, RegisteredCount = t.Registrations.Count, PrizePool = t.PrizePool };
+        }
+
+
+        // =============================================================
+        // 4. LÓGICA INTELIGENTE: REGISTRO (Solo Mesas Activas)
+        // =============================================================
         public async Task<RegistrationResult?> RegisterPlayerAsync(Guid id, string playerName)
         {
             var t = await _repo.GetByIdAsync(id);
             if (t == null) return null;
 
+            // Inicializar lista si es null
             if (t.Tables == null) t.Tables = new List<TournamentTable>();
-            if (!t.Tables.Any()) t.Tables.Add(new TournamentTable { TableNumber = 1, Name = "Mesa 1", Id = Guid.NewGuid().ToString() });
+
+            // Si no hay ninguna mesa (ni activa ni cerrada), crear la primera
+            if (!t.Tables.Any())
+            {
+                t.Tables.Add(new TournamentTable { TableNumber = 1, Name = "Mesa 1", Id = Guid.NewGuid().ToString(), Status = "Active" });
+            }
+            // Si hay mesas pero ninguna activa (caso raro, reabrir o crear nueva)
+            else if (!t.Tables.Any(x => x.Status == "Active"))
+            {
+                int nextNum = t.Tables.Max(x => x.TableNumber) + 1;
+                t.Tables.Add(new TournamentTable { TableNumber = nextNum, Name = $"Mesa {nextNum}", Id = Guid.NewGuid().ToString(), Status = "Active" });
+            }
 
             var reg = new TournamentRegistration
             {
@@ -78,21 +153,44 @@ namespace PokerGenys.Services
             string? instructionType = null;
             string? systemMessage = null;
 
+            // --- DATOS FILTRADOS POR ESTADO ---
             var activePlayers = t.Registrations.Where(r => r.Status == "Active").ToList();
-            int totalActive = activePlayers.Count + 1;
+            // IMPORTANTE: Solo contamos mesas activas para capacidad
+            var activeTables = t.Tables.Where(tb => tb.Status == "Active").ToList();
+
+            int totalActiveWithNew = activePlayers.Count + 1;
             int seatsPerTable = t.Seating.SeatsPerTable > 0 ? t.Seating.SeatsPerTable : 9;
-            int capacity = t.Tables.Count * seatsPerTable;
+            int currentCapacity = activeTables.Count * seatsPerTable;
 
             // --- ALGORITMO ROMPER MESA ---
-            if (totalActive > capacity)
+            if (totalActiveWithNew > currentCapacity)
             {
-                int newTableNum = t.Tables.Max(x => x.TableNumber) + 1;
-                var newTable = new TournamentTable { Id = Guid.NewGuid().ToString(), TableNumber = newTableNum, Name = $"Mesa {newTableNum}" };
+                // Crear nueva mesa
+                // Buscamos el máximo histórico para el número, para no repetir ID visual
+                int newTableNum = t.Tables.Any() ? t.Tables.Max(x => x.TableNumber) + 1 : 1;
+
+                var newTable = new TournamentTable
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    TableNumber = newTableNum,
+                    Name = $"Mesa {newTableNum}",
+                    Status = "Active"
+                };
                 t.Tables.Add(newTable);
 
-                // Mover gente de la mesa más llena
-                var crowdedTable = t.Tables.OrderByDescending(tb => activePlayers.Count(p => p.TableId == tb.Id)).First();
-                var playersToMove = activePlayers.Where(p => p.TableId == crowdedTable.Id).OrderByDescending(p => p.RegisteredAt).Take(seatsPerTable / 2).ToList();
+                // Refrescamos lista de activas
+                activeTables.Add(newTable);
+
+                // Mover gente de la mesa más llena (DE LAS ACTIVAS)
+                var crowdedTable = activeTables.OrderByDescending(tb => activePlayers.Count(p => p.TableId == tb.Id)).First();
+
+                var playersInCrowded = activePlayers
+                    .Where(p => p.TableId == crowdedTable.Id)
+                    .OrderByDescending(p => p.RegisteredAt)
+                    .ToList();
+
+                int moveCount = playersInCrowded.Count / 2;
+                var playersToMove = playersInCrowded.Take(moveCount).ToList();
 
                 foreach (var p in playersToMove)
                 {
@@ -117,17 +215,22 @@ namespace PokerGenys.Services
             }
             else
             {
-                // Buscar mesa con cupo
-                var targetTable = t.Tables
+                // Buscar mesa con cupo (SOLO ACTIVAS)
+                var targetTable = activeTables
                     .OrderBy(tb => activePlayers.Count(p => p.TableId == tb.Id))
                     .FirstOrDefault(tb => activePlayers.Count(p => p.TableId == tb.Id) < seatsPerTable);
 
-                if (targetTable == null) targetTable = t.Tables.First(); // Fallback
+                // Fallback a la primera activa
+                if (targetTable == null) targetTable = activeTables.First();
 
                 reg.TableId = targetTable.Id;
 
-                // Buscar primer asiento numérico libre (1, 2, 3...)
-                var takenSeats = activePlayers.Where(p => p.TableId == targetTable.Id && p.SeatId != null).Select(p => int.Parse(p.SeatId)).ToList();
+                // Buscar primer asiento numérico libre
+                var takenSeats = activePlayers
+                    .Where(p => p.TableId == targetTable.Id && p.SeatId != null)
+                    .Select(p => int.TryParse(p.SeatId, out int s) ? s : 0) // Safe parse
+                    .ToList();
+
                 int freeSeat = 1;
                 while (takenSeats.Contains(freeSeat)) freeSeat++;
                 reg.SeatId = freeSeat.ToString();
@@ -142,6 +245,10 @@ namespace PokerGenys.Services
             return new RegistrationResult { Registration = reg, InstructionType = instructionType, SystemMessage = systemMessage };
         }
 
+
+        // =============================================================
+        // 5. LÓGICA INTELIGENTE: ELIMINACIÓN (Solo Mesas Activas)
+        // =============================================================
         public async Task<RemoveResult> RemoveRegistrationAsync(Guid tournamentId, Guid regId)
         {
             var t = await _repo.GetByIdAsync(tournamentId);
@@ -155,27 +262,37 @@ namespace PokerGenys.Services
             player.TableId = null;
             player.SeatId = null;
 
-            // LIMPIEZA: Verificar mesas vacías
+            // LIMPIEZA: Cerrar mesas vacías
             CleanupEmptyTables(t);
 
             await _repo.UpdateAsync(t);
 
             // --- LÓGICA MESA FINAL Y BALANCEO ---
             var activePlayers = t.Registrations.Where(r => r.Status == "Active").ToList();
+            // IMPORTANTE: Solo miramos mesas activas para decidir si hay balanceo o final
+            var activeTables = t.Tables.Where(tb => tb.Status == "Active").ToList();
+
             int finalTableSize = t.Seating.FinalTableSize > 0 ? t.Seating.FinalTableSize : 9;
 
-            if (t.Tables.Count > 1 && activePlayers.Count <= finalTableSize)
+            // Si hay más de 1 mesa activa y caben en una sola -> MESA FINAL
+            if (activeTables.Count > 1 && activePlayers.Count <= finalTableSize)
             {
                 return new RemoveResult { Success = true, InstructionType = "FINAL_TABLE_START", Message = "¡MESA FINAL DEFINIDA!" };
             }
 
-            // Check desbalance simple (Gap > 1)
-            var tableCounts = t.Tables.Select(tb => new { Table = tb, Count = activePlayers.Count(p => p.TableId == tb.Id) }).ToList();
+            // Check desbalance simple (Gap > 1) entre mesas activas
+            var tableCounts = activeTables.Select(tb => new
+            {
+                Table = tb,
+                Count = activePlayers.Count(p => p.TableId == tb.Id)
+            }).ToList();
+
             if (tableCounts.Count >= 2)
             {
                 var max = tableCounts.MaxBy(x => x.Count);
                 var min = tableCounts.MinBy(x => x.Count);
-                if ((max.Count - min.Count) >= 2)
+
+                if (max != null && min != null && (max.Count - min.Count) >= 2)
                 {
                     return new RemoveResult
                     {
@@ -194,18 +311,26 @@ namespace PokerGenys.Services
         // --- HELPER PRIVADO ---
         private void CleanupEmptyTables(Tournament t)
         {
-            // Mesas que NO tienen ningún jugador Activo
-            var emptyTables = t.Tables.Where(tb =>
+            // Buscar mesas que están ACTIVAS pero no tienen jugadores activos
+            var emptyActiveTables = t.Tables.Where(tb =>
+                tb.Status == "Active" &&
                 !t.Registrations.Any(r => r.TableId == tb.Id && r.Status == "Active")
             ).ToList();
 
-            // Nunca borrar la Mesa 1 si es la única
-            if (t.Tables.Count == 1) return;
+            // Regla: Nunca cerrar la Mesa 1 si es la única activa (para que siempre haya una base)
+            // Contamos cuántas activas hay en total
+            var activeTablesCount = t.Tables.Count(x => x.Status == "Active");
 
-            foreach (var tb in emptyTables)
+            foreach (var tb in emptyActiveTables)
             {
-                // Si borramos mesas, hay que tener cuidado de no borrar la Mesa Final si ya estamos en ella
-                t.Tables.Remove(tb);
+                // Si solo queda 1 mesa activa, no la cerramos aunque esté vacía
+                if (activeTablesCount <= 1) break;
+
+                // --- SOFT DELETE: CAMBIAR ESTADO ---
+                tb.Status = "Closed";
+                tb.ClosedAt = DateTime.UtcNow;
+
+                activeTablesCount--;
             }
         }
     }

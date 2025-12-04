@@ -18,6 +18,8 @@ namespace PokerGenys.Domain.Models
         // "Active", "Broken" (Colapsada), "FinalTable"
         public string Status { get; set; } = "Active";
 
+        public DateTime? ClosedAt { get; set; }
+
         // Opcional: Para saber quién reparte si usas tablets, 
         // pero en torneos manuales no suele ser crítico guardar esto en BD.
         public Guid? CurrentDealerId { get; set; }
@@ -25,5 +27,6 @@ namespace PokerGenys.Domain.Models
         // Helper para saber cuántos asientos tiene esta mesa específica
         // (Útil si una mesa queda de 8 y otra de 9)
         public int MaxSeats { get; set; } = 9;
+
     }
 }
