@@ -29,7 +29,7 @@ BsonSerializer.RegisterSerializer(new GuidSerializer(MongoDB.Bson.GuidRepresenta
 
 // Contexto de Base de Datos (Singleton es seguro para MongoClient)
 builder.Services.AddSingleton(new MongoContext(mongoSettings));
-
+builder.Services.AddHttpClient();
 // --- TORNEOS (Lógica existente) ---
 builder.Services.AddScoped<ITournamentRepository, TournamentRepository>();
 builder.Services.AddScoped<ITournamentService, TournamentService>();
