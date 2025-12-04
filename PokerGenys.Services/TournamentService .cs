@@ -459,7 +459,7 @@ namespace PokerGenys.Services
 
         // Dentro de Services/TournamentService.cs
 
-        public async Task<RegistrationResult?> RebuyPlayerAsync(Guid tournamentId, Guid registrationId)
+        public async Task<RegistrationResult?> RebuyPlayerAsync(Guid tournamentId, Guid registrationId, string paymentMethod)
         {
             var t = await _repo.GetByIdAsync(tournamentId);
             if (t == null) return null;
@@ -493,7 +493,7 @@ namespace PokerGenys.Services
                 PlayerId = reg.Id,
                 Type = TournamentTransactionType.Rebuy, // Enum que pediste
                 Amount = t.RebuyConfig.RebuyCost,
-                Method = "Cash", // Por defecto, o pasarlo por parámetro
+                Method = paymentMethod, // Por defecto, o pasarlo por parámetro
                 Notes = $"Re-entry Nivel {t.CurrentLevel}",
                 Timestamp = DateTime.UtcNow
             };
@@ -509,7 +509,7 @@ namespace PokerGenys.Services
                     PlayerId = reg.Id, // Opcional ligarlo al jugador
                     Type = TournamentTransactionType.HouseRake,
                     Amount = t.RebuyConfig.RebuyHouseFee,
-                    Method = "Cash",
+                    Method = paymentMethod,
                     Notes = "Rake Rebuy",
                     Timestamp = DateTime.UtcNow
                 };

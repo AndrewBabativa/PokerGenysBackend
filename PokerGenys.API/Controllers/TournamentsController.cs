@@ -280,9 +280,8 @@ namespace PokerGenys.API.Controllers
             return Ok(result);
         }
 
-        // ⚠️ CAMBIO: Rebuy + Notificación
         [HttpPost("{id}/registrations/{regId}/rebuy")]
-        public async Task<IActionResult> RebuyPlayer(Guid id, Guid regId)
+        public async Task<IActionResult> RebuyPlayer(Guid id, Guid regId, string paymentMethod)
         {
             var result = await _service.RebuyPlayerAsync(id, regId);
             if (result == null) return BadRequest("No se pudo realizar el rebuy (Verifique nivel o ID)");
@@ -290,7 +289,7 @@ namespace PokerGenys.API.Controllers
             // 1. Notificar resurrección del jugador
             await NotifyNodeServer(id, "player-action", new
             {
-                action = "add", // Usamos add/update para que vuelva a aparecer
+                action = "rebuy", // Usamos add/update para que vuelva a aparecer
                 payload = result.Registration
             });
 
