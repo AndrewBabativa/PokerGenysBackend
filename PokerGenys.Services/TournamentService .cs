@@ -254,6 +254,7 @@ namespace PokerGenys.Services
             var t = await _repo.GetByIdAsync(tournamentId);
             if (t == null) return new RemoveResult { Success = false };
 
+            // 1. Eliminar al jugador
             var player = t.Registrations.FirstOrDefault(r => r.Id == regId);
             if (player == null) return new RemoveResult { Success = false };
 
@@ -262,46 +263,80 @@ namespace PokerGenys.Services
             player.TableId = null;
             player.SeatId = null;
 
-            // LIMPIEZA: Cerrar mesas vacías
+            // Limpiar mesas vacías previas
             CleanupEmptyTables(t);
 
+            // Guardamos la eliminación primero
             await _repo.UpdateAsync(t);
 
-            // --- LÓGICA MESA FINAL Y BALANCEO ---
+            // --- LÓGICA CENTRALIZADA DE MESA FINAL (REDRAW) ---
+
             var activePlayers = t.Registrations.Where(r => r.Status == "Active").ToList();
-            // IMPORTANTE: Solo miramos mesas activas para decidir si hay balanceo o final
             var activeTables = t.Tables.Where(tb => tb.Status == "Active").ToList();
 
+            // Leemos config (default 9)
             int finalTableSize = t.Seating.FinalTableSize > 0 ? t.Seating.FinalTableSize : 9;
 
-            // Si hay más de 1 mesa activa y caben en una sola -> MESA FINAL
-            if (activeTables.Count > 1 && activePlayers.Count <= finalTableSize)
+            // CONDICIÓN DE MESA FINAL:
+            // Quedan X jugadores Y (hay más de 1 mesa O la mesa actual no se llama "Mesa Final")
+            bool isFinalCountReached = activePlayers.Count <= finalTableSize && activePlayers.Count > 1;
+            bool needsConsolidation = activeTables.Count > 1 || (activeTables.Count == 1 && activeTables[0].Name != "Mesa Final");
+
+            if (isFinalCountReached && needsConsolidation)
             {
-                return new RemoveResult { Success = true, InstructionType = "FINAL_TABLE_START", Message = "¡MESA FINAL DEFINIDA!" };
+                // 1. Crear la Mesa Final Oficial
+                var finalTable = new TournamentTable
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    TableNumber = 1, // Reiniciamos a Mesa 1
+                    Name = "Mesa Final",
+                    Status = "Active"
+                };
+
+                // 2. Cerrar todas las mesas anteriores
+                foreach (var tb in activeTables)
+                {
+                    tb.Status = "Closed";
+                    tb.ClosedAt = DateTime.UtcNow;
+                }
+
+                // Agregar la nueva
+                t.Tables.Add(finalTable);
+
+                // 3. SHUFFLE (Barajar aleatoriamente a los jugadores)
+                var rng = new Random();
+                var shuffledPlayers = activePlayers.OrderBy(x => rng.Next()).ToList();
+
+                // 4. Asignar puestos del 1 al N
+                int seatNum = 1;
+                foreach (var p in shuffledPlayers)
+                {
+                    p.TableId = finalTable.Id;
+                    p.SeatId = seatNum.ToString(); // Asignación forzada 1, 2, 3...
+                    seatNum++;
+                }
+
+                // 5. Guardar el Redraw en BD
+                await _repo.UpdateAsync(t);
+
+                return new RemoveResult
+                {
+                    Success = true,
+                    InstructionType = "FINAL_TABLE_START",
+                    Message = "¡MESA FINAL DEFINIDA! Sorteo automático realizado."
+                };
             }
 
-            // Check desbalance simple (Gap > 1) entre mesas activas
-            var tableCounts = activeTables.Select(tb => new
-            {
-                Table = tb,
-                Count = activePlayers.Count(p => p.TableId == tb.Id)
-            }).ToList();
-
+            // ... (Resto de lógica de balanceo normal) ...
+            // Check desbalance simple (Gap > 1)
+            var tableCounts = activeTables.Select(tb => new { Table = tb, Count = activePlayers.Count(p => p.TableId == tb.Id) }).ToList();
             if (tableCounts.Count >= 2)
             {
                 var max = tableCounts.MaxBy(x => x.Count);
                 var min = tableCounts.MinBy(x => x.Count);
-
                 if (max != null && min != null && (max.Count - min.Count) >= 2)
                 {
-                    return new RemoveResult
-                    {
-                        Success = true,
-                        InstructionType = "BALANCE_REQUIRED",
-                        Message = $"Balancear: De {max.Table.Name} a {min.Table.Name}",
-                        FromTable = max.Table.Id,
-                        ToTable = min.Table.Id
-                    };
+                    return new RemoveResult { Success = true, InstructionType = "BALANCE_REQUIRED", Message = $"Balancear: De {max.Table.Name} a {min.Table.Name}", FromTable = max.Table.Id, ToTable = min.Table.Id };
                 }
             }
 
