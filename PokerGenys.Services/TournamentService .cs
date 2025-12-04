@@ -21,7 +21,21 @@ namespace PokerGenys.Services
         // =============================================================
         public Task<List<Tournament>> GetAllAsync() => _repo.GetAllAsync();
         public Task<Tournament?> GetByIdAsync(Guid id) => _repo.GetByIdAsync(id);
-        public Task<Tournament> CreateAsync(Tournament tournament) => _repo.CreateAsync(tournament);
+        public async Task<Tournament> CreateAsync(Tournament tournament)
+        {
+            // Antes de guardar, aseguramos que la tabla de premios tenga montos fijos calculados
+            CalculateFixedPayouts(tournament);
+
+            // Inicializar tablas y registros
+            if (tournament.Tables == null || !tournament.Tables.Any())
+            {
+                tournament.Tables = new List<TournamentTable> { new TournamentTable { TableNumber = 1, Name = "Mesa 1", Status = "Scheduled" } };
+            }
+
+            // El repositorio guarda el objeto Tournament completo, incluyendo los FixedAmount actualizados
+            var created = await _repo.CreateAsync(tournament);
+            return created;
+        }
         public Task<Tournament> UpdateAsync(Tournament tournament) => _repo.UpdateAsync(tournament);
         public Task<bool> DeleteAsync(Guid id) => _repo.DeleteAsync(id);
 
@@ -541,6 +555,37 @@ namespace PokerGenys.Services
                 Registration = reg,
                 SystemMessage = $"Reingreso exitoso en {targetTable?.Name ?? "Sin Mesa"}"
             };
+        }
+
+        // Dentro de TournamentService.cs (o un PayoutCalculatorService)
+
+        private void CalculateFixedPayouts(Tournament t)
+        {
+            // Usamos el garantizado como base si el pozo real es 0 o menor
+            decimal totalPrize = Math.Max(t.Guaranteed, t.PrizePool);
+
+            if (totalPrize <= 0 || t.Payouts == null || t.Payouts.Count == 0)
+            {
+                return; // No hay nada que calcular
+            }
+
+            // Calcular la suma de todos los porcentajes definidos
+            decimal totalPercentage = t.Payouts.Sum(p => p.Percentage);
+
+            // Si el porcentaje suma 100, calculamos los montos fijos.
+            if (totalPercentage == 100)
+            {
+                foreach (var tier in t.Payouts)
+                {
+                    // Calcula el monto fijo: (Porcentaje / 100) * Pozo Total
+                    decimal fixedAmount = (tier.Percentage / 100m) * totalPrize;
+                    tier.FixedAmount = fixedAmount;
+
+                    // Nota: Aquí se está sobrescribiendo el FixedAmount a 0 que viene del CURL si es %
+                    // Si el CURL ya tiene FixedAmount, este cálculo podría ser omitido si es un payout fijo.
+                }
+            }
+            // Si no suma 100, la lógica dependerá de las reglas específicas del casino.
         }
     }
 }
