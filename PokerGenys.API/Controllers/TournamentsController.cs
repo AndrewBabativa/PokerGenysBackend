@@ -192,5 +192,14 @@ namespace PokerGenys.API.Controllers
             var result = await _service.RecordTransactionAsync(id, tx);
             return Ok(result);
         }
+
+        // POST: api/tournaments/{id}/registrations/{regId}/rebuy
+        [HttpPost("{id}/registrations/{regId}/rebuy")]
+        public async Task<IActionResult> RebuyPlayer(Guid id, Guid regId)
+        {
+            var result = await _service.RebuyPlayerAsync(id, regId);
+            if (result == null) return BadRequest("No se pudo realizar el rebuy (Verifique nivel o ID)");
+            return Ok(result);
+        }
     }
 }

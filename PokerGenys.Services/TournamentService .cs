@@ -442,5 +442,105 @@ namespace PokerGenys.Services
             // O simplemente usamos la propiedad acumulada si prefieres
             return t.PrizePool;
         }
+
+        // Dentro de Services/TournamentService.cs
+
+        public async Task<RegistrationResult?> RebuyPlayerAsync(Guid tournamentId, Guid registrationId)
+        {
+            var t = await _repo.GetByIdAsync(tournamentId);
+            if (t == null) return null;
+
+            // 1. Validar que el registro esté permitido (Nivel)
+            if (t.RebuyConfig.UntilLevel > 0 && t.CurrentLevel > t.RebuyConfig.UntilLevel)
+            {
+                // Retornamos null o podrías manejar un error específico
+                return null;
+            }
+
+            var reg = t.Registrations.FirstOrDefault(r => r.Id == registrationId);
+            if (reg == null) return null;
+
+            // 2. "Resucitar" al Jugador
+            reg.Status = "Active";
+            reg.EliminatedAt = null;
+            reg.Chips = t.RebuyConfig.RebuyChips; // Reset de fichas (stack de rebuy)
+
+            // Limpiar asiento anterior por si acaso quedó sucio
+            reg.TableId = null;
+            reg.SeatId = null;
+
+            // 3. Registrar Transacción Financiera (REBUY)
+            if (t.Transactions == null) t.Transactions = new List<TournamentTransaction>();
+
+            var tx = new TournamentTransaction
+            {
+                Id = Guid.NewGuid(),
+                TournamentId = t.Id,
+                PlayerId = reg.Id,
+                Type = TournamentTransactionType.Rebuy, // Enum que pediste
+                Amount = t.RebuyConfig.RebuyCost,
+                Method = "Cash", // Por defecto, o pasarlo por parámetro
+                Notes = $"Re-entry Nivel {t.CurrentLevel}",
+                Timestamp = DateTime.UtcNow
+            };
+            t.Transactions.Add(tx);
+
+            // Transacción de Rake (si aplica en Rebuy)
+            if (t.RebuyConfig.RebuyHouseFee > 0)
+            {
+                var rakeTx = new TournamentTransaction
+                {
+                    Id = Guid.NewGuid(),
+                    TournamentId = t.Id,
+                    PlayerId = reg.Id, // Opcional ligarlo al jugador
+                    Type = TournamentTransactionType.HouseRake,
+                    Amount = t.RebuyConfig.RebuyHouseFee,
+                    Method = "Cash",
+                    Notes = "Rake Rebuy",
+                    Timestamp = DateTime.UtcNow
+                };
+                t.Transactions.Add(rakeTx);
+            }
+
+            // Actualizar acumulados
+            t.PrizePool += t.RebuyConfig.RebuyCost;
+            reg.PaidAmount += (t.RebuyConfig.RebuyCost + t.RebuyConfig.RebuyHouseFee);
+
+            // 4. Buscarle Silla Nueva (Reutilizamos lógica de Register)
+            // ... (Aquí va la lógica de buscar mesa activa y hueco, igual que en RegisterPlayerAsync) ...
+            // (Para no repetir código gigante, idealmente extrae la lógica de "FindSeat" a un método privado)
+
+            // --- LÓGICA RESUMIDA DE ASIGNACIÓN ---
+            var activeTables = t.Tables.Where(tb => tb.Status == "Active").ToList();
+            var activePlayers = t.Registrations.Where(r => r.Status == "Active").ToList(); // Ya incluye al resucitado
+            int seatsPerTable = t.Seating.SeatsPerTable > 0 ? t.Seating.SeatsPerTable : 9;
+
+            // Buscar mesa con espacio
+            var targetTable = activeTables
+                .OrderBy(tb => activePlayers.Count(p => p.TableId == tb.Id))
+                .FirstOrDefault(tb => activePlayers.Count(p => p.TableId == tb.Id) < seatsPerTable);
+
+            // Si no hay hueco, habría que crear mesa (Lógica Romper Mesa), 
+            // por simplicidad aquí asumimos que entra en hueco o creas mesa manual si está lleno.
+            if (targetTable != null)
+            {
+                reg.TableId = targetTable.Id;
+                // Buscar asiento libre
+                var takenSeats = activePlayers.Where(p => p.TableId == targetTable.Id && p.SeatId != null)
+                                              .Select(p => int.TryParse(p.SeatId, out int s) ? s : 0).ToList();
+                int freeSeat = 1;
+                while (takenSeats.Contains(freeSeat)) freeSeat++;
+                reg.SeatId = freeSeat.ToString();
+            }
+            // -------------------------------------
+
+            await _repo.UpdateAsync(t);
+
+            return new RegistrationResult
+            {
+                Registration = reg,
+                SystemMessage = $"Reingreso exitoso en {targetTable?.Name ?? "Sin Mesa"}"
+            };
+        }
     }
 }
