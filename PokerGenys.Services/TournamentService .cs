@@ -147,7 +147,10 @@ namespace PokerGenys.Services
                 TournamentId = t.Id,
                 Chips = t.StartingChips,
                 RegisteredAt = DateTime.UtcNow,
-                Status = "Active"
+                Status = "Active",
+
+                PaidAmount = t.BuyIn + t.Fee,
+                PaymentMethod = "Cash"
             };
 
             string? instructionType = null;
@@ -238,8 +241,38 @@ namespace PokerGenys.Services
                 systemMessage = $"Asignado a {targetTable.Name}, Puesto {reg.SeatId}";
             }
 
+            if (t.Transactions == null) t.Transactions = new List<TournamentTransaction>();
+
+            var buyInTx = new TournamentTransaction
+            {
+                Id = Guid.NewGuid(),
+                TournamentId = t.Id,
+                PlayerId = reg.Id,
+                Type = TournamentTransactionType.BuyIn,
+                Amount = t.BuyIn, 
+                Method = "Cash",
+                Notes = $"Buy-In Inicial: {playerName}",
+                Timestamp = DateTime.UtcNow
+            };
+            t.Transactions.Add(buyInTx);
+
+            if (t.Fee > 0)
+            {
+                var rakeTx = new TournamentTransaction
+                {
+                    Id = Guid.NewGuid(),
+                    TournamentId = t.Id,
+                    Type = TournamentTransactionType.HouseRake,
+                    Amount = t.Fee,
+                    Method = "Cash",
+                    Notes = $"Rake Buy-In: {playerName}",
+                    Timestamp = DateTime.UtcNow
+                };
+                t.Transactions.Add(rakeTx);
+            }
+            t.PrizePool += t.BuyIn;
             t.Registrations.Add(reg);
-            t.PrizePool += t.BuyIn + t.Fee;
+          
             await _repo.UpdateAsync(t);
 
             return new RegistrationResult { Registration = reg, InstructionType = instructionType, SystemMessage = systemMessage };
@@ -367,6 +400,47 @@ namespace PokerGenys.Services
 
                 activeTablesCount--;
             }
+        }
+
+        // =============================================================
+        // LÓGICA FINANCIERA
+        // =============================================================
+
+        public async Task<TournamentTransaction?> RecordTransactionAsync(Guid tournamentId, TournamentTransaction transaction)
+        {
+            var t = await _repo.GetByIdAsync(tournamentId);
+            if (t == null) return null;
+
+            if (t.Transactions == null) t.Transactions = new List<TournamentTransaction>();
+
+            transaction.Id = Guid.NewGuid();
+            transaction.TournamentId = tournamentId;
+            transaction.Timestamp = DateTime.UtcNow;
+
+            t.Transactions.Add(transaction);
+
+            // Si es un pago de premio, actualizamos el registro del jugador también
+            if (transaction.Type == TournamentTransactionType.Payout && transaction.PlayerId.HasValue)
+            {
+                var player = t.Registrations.FirstOrDefault(r => r.Id == transaction.PlayerId.Value);
+                if (player != null)
+                {
+                    player.PayoutAmount = (player.PayoutAmount ?? 0) + Math.Abs(transaction.Amount); // Guardamos el total pagado
+                }
+            }
+
+            await _repo.UpdateAsync(t);
+            return transaction;
+        }
+
+        public async Task<decimal> GetTotalPrizePoolAsync(Guid tournamentId)
+        {
+            var t = await _repo.GetByIdAsync(tournamentId);
+            if (t == null) return 0;
+
+            // Calculado basado en transacciones reales (BuyIns + Rebuys + Addons) - HouseRake
+            // O simplemente usamos la propiedad acumulada si prefieres
+            return t.PrizePool;
         }
     }
 }

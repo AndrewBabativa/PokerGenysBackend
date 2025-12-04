@@ -30,6 +30,9 @@ namespace PokerGenys.Domain.Models
         public DateTime? StartTime { get; set; }   // Hora exacta de inicio
         public int CurrentLevel { get; set; } = 1; // Nivel actual
         public decimal PrizePool { get; set; } = 0;
+
+        public List<TournamentTransaction> Transactions { get; set; } = new();
+
     }
 
 

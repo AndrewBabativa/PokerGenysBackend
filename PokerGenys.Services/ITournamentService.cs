@@ -31,5 +31,8 @@ namespace PokerGenys.Services
 
         // ⚠️ CAMBIO CLAVE: Ahora devuelve RegistrationResult (con instrucciones de mesa nueva)
         Task<RegistrationResult?> RegisterPlayerAsync(Guid id, string playerName);
+
+        Task<TournamentTransaction?> RecordTransactionAsync(Guid tournamentId, TournamentTransaction transaction);
+        Task<decimal> GetTotalPrizePoolAsync(Guid tournamentId);
     }
 }

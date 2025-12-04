@@ -147,5 +147,50 @@ namespace PokerGenys.API.Controllers
             var state = await _service.GetTournamentStateAsync(id);
             return state == null ? NotFound() : Ok(state);
         }
+
+        // ============================================================
+        // FINANZAS
+        // ============================================================
+
+        public class PayoutRequest
+        {
+            public decimal Amount { get; set; }
+            public string Method { get; set; } = "Cash";
+            public string Notes { get; set; } = "";
+        }
+
+        [HttpPost("{id}/registrations/{regId}/payout")]
+        public async Task<IActionResult> RecordPayout(Guid id, Guid regId, [FromBody] PayoutRequest req)
+        {
+            var tx = new TournamentTransaction
+            {
+                PlayerId = regId,
+                Type = TournamentTransactionType.Payout,
+                Amount = -Math.Abs(req.Amount), // Salida de dinero (Negativo)
+                Method = req.Method,
+                Notes = req.Notes
+            };
+
+            var result = await _service.RecordTransactionAsync(id, tx);
+
+            if (result == null) return NotFound();
+            return Ok(result);
+        }
+
+        // Opcional: Endpoint para registrar gastos varios (Comida, Dealer)
+        [HttpPost("{id}/expenses")]
+        public async Task<IActionResult> RecordExpense(Guid id, [FromBody] PayoutRequest req)
+        {
+            var tx = new TournamentTransaction
+            {
+                Type = TournamentTransactionType.Expense,
+                Amount = -Math.Abs(req.Amount),
+                Method = req.Method,
+                Notes = req.Notes
+            };
+
+            var result = await _service.RecordTransactionAsync(id, tx);
+            return Ok(result);
+        }
     }
 }
