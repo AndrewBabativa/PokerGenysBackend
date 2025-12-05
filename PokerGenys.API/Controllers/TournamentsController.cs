@@ -78,7 +78,7 @@ namespace PokerGenys.API.Controllers
             var t = await _service.StartTournamentAsync(id);
             if (t == null) return NotFound();
 
-            // OPTIMIZACIÓN: Enviamos timeLeft aquí también para arranque instantáneo en frontend
+            // OPTIMIZACIÓN: Enviamos toda la data necesaria para que Node arranque el loop SIN consultar DB
             var timeLeft = t.ClockState?.SecondsRemaining ?? 0;
 
             await NotifyNodeServer(id, "tournament-control", new
@@ -87,24 +87,28 @@ namespace PokerGenys.API.Controllers
                 data = new
                 {
                     level = t.CurrentLevel,
-                    timeLeft = timeLeft // <--- CRÍTICO para sincronización inmediata
+                    timeLeft = timeLeft
+                },
+                // Inyectamos datos de hidratación para Node
+                _internalState = new
+                {
+                    startTime = t.StartTime,
+                    levels = t.Levels,
+                    currentLevel = t.CurrentLevel
                 }
             });
+
             return Ok(t);
         }
 
         [HttpPost("{id}/pause")]
         public async Task<IActionResult> PauseTournament(Guid id)
         {
-            // 1. El servicio calcula el tiempo restante exacto y lo guarda en BD
             var t = await _service.PauseTournamentAsync(id);
             if (t == null) return NotFound();
 
-            // 2. Obtenemos el tiempo congelado
-            // CORRECCIÓN: Acceder a la propiedad SecondsRemaining, no al objeto ClockState nulo
             var frozenTime = t.ClockState?.SecondsRemaining ?? 0;
 
-            // 3. Emitir evento al Socket Server
             await NotifyNodeServer(id, "tournament-control", new
             {
                 type = "pause",
