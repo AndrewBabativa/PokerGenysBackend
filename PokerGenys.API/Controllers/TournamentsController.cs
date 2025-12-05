@@ -4,6 +4,8 @@ using PokerGenys.Domain.Models.Tournaments;
 using PokerGenys.Services;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace PokerGenys.API.Controllers
 {
@@ -29,19 +31,41 @@ namespace PokerGenys.API.Controllers
             try
             {
                 var client = _httpClientFactory.CreateClient();
-                // Timeout corto para no bloquear el hilo de .NET si Node está lento
-                client.Timeout = TimeSpan.FromSeconds(2);
-
+                client.Timeout = TimeSpan.FromSeconds(2); 
                 var body = new { tournamentId, @event = eventName, data = payload };
                 var content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
-
-                // No usamos 'await' bloqueante estricto para la respuesta, solo para el envío
                 _ = client.PostAsync(NODE_SERVER_URL, content);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[Webhook Error] {ex.Message}");
             }
+        }
+
+        // DENTRO DE TournamentsController
+
+        private async Task NotifyWithStats(Guid tournamentId, string action, object payload)
+        {
+            // 1. Llamamos al método NUEVO que devuelve TournamentStatsDto
+            // NO usamos GetTournamentStateAsync aquí porque le faltan datos (ActivePlayers).
+            var stats = await _service.GetTournamentStatsAsync(tournamentId);
+
+            // 2. Construimos el mensaje para el Socket
+            var socketPayload = new
+            {
+                action = action,
+                payload = payload,
+
+                // CORRECCIÓN FINAL: Mapeamos propiedad con propiedad correctamente
+                stats = stats != null ? new
+                {
+                    entries = stats.Entries,     // Correcto: Total de inscritos
+                    active = stats.Active,       // Correcto: Jugadores vivos
+                    prizePool = stats.PrizePool  // Correcto: Dinero
+                } : null
+            };
+
+            await NotifyNodeServer(tournamentId, "player-action", socketPayload);
         }
 
         // ============================================================
@@ -156,16 +180,7 @@ namespace PokerGenys.API.Controllers
             var result = await _service.RegisterPlayerAsync(id, req.PlayerName, req.PaymentMethod, req.Bank, req.Reference);
             if (result == null) return BadRequest("No se pudo registrar (Verifique estado del torneo)");
 
-            await NotifyNodeServer(id, "player-action", new { action = "add", payload = result.Registration });
-
-            if (!string.IsNullOrEmpty(result.InstructionType))
-            {
-                await NotifyNodeServer(id, "tournament-instruction", new
-                {
-                    type = result.InstructionType,
-                    message = result.SystemMessage
-                });
-            }
+            await NotifyWithStats(id, "add", new { payload = result.Registration });
             return Ok(result);
         }
 
@@ -175,17 +190,8 @@ namespace PokerGenys.API.Controllers
             var result = await _service.RemoveRegistrationAsync(id, regId);
             if (!result.Success) return NotFound();
 
-            await NotifyNodeServer(id, "player-action", new { action = "remove", payload = new { registrationId = regId } });
+            await NotifyWithStats(id, "remove", new { registrationId = regId });
 
-            if (!string.IsNullOrEmpty(result.InstructionType))
-            {
-                await NotifyNodeServer(id, "tournament-instruction", new
-                {
-                    type = result.InstructionType,
-                    message = result.Message,
-                    payload = new { fromTable = result.FromTable, toTable = result.ToTable }
-                });
-            }
             return Ok(result);
         }
 
@@ -219,25 +225,14 @@ namespace PokerGenys.API.Controllers
         // 5. TRANSACCIONES DE JUEGO (REBUY, ADDON)
         // ============================================================
 
-        public class GamePaymentRequest
-        {
-            public string PaymentMethod { get; set; } = "Cash";
-            public string? Bank { get; set; }
-            public string? Reference { get; set; }
-        }
-
         [HttpPost("{id}/registrations/{regId}/rebuy")]
         public async Task<IActionResult> RebuyPlayer(Guid id, Guid regId, [FromBody] GamePaymentRequest req)
         {
             var result = await _service.RebuyPlayerAsync(id, regId, req.PaymentMethod, req.Bank, req.Reference);
             if (result == null) return BadRequest("Rebuy no permitido");
 
-            await NotifyNodeServer(id, "player-action", new { action = "rebuy", payload = result.Registration });
+            await NotifyWithStats(id, "rebuy", result.Registration);
 
-            if (!string.IsNullOrEmpty(result.SystemMessage))
-            {
-                await NotifyNodeServer(id, "tournament-instruction", new { type = "INFO", message = result.SystemMessage });
-            }
             return Ok(result);
         }
 
@@ -255,16 +250,6 @@ namespace PokerGenys.API.Controllers
         // 6. VENTAS Y CAJA (Sales)
         // ============================================================
 
-        public class ServiceSaleRequest
-        {
-            public Guid? PlayerId { get; set; }
-            public decimal Amount { get; set; }
-            public string Description { get; set; } = "Venta";
-            public Dictionary<string, object> Items { get; set; } = new();
-            public string PaymentMethod { get; set; } = "Cash";
-            public string? Bank { get; set; }
-            public string? Reference { get; set; }
-        }
 
         [HttpPost("{id}/sales")]
         public async Task<IActionResult> RecordSale(Guid id, [FromBody] ServiceSaleRequest req)

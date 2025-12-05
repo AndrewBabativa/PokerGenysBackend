@@ -109,7 +109,16 @@ namespace PokerGenys.Services
 
             await _repo.UpdateAsync(t);
 
-            return new RegistrationResult { Registration = reg, InstructionType = seatResult.InstructionType, SystemMessage = seatResult.Message };
+            return new RegistrationResult
+            {
+                Registration = reg,
+                NewStats = new TournamentStatsDto
+                {
+                    Entries = t.TotalEntries,
+                    Active = t.ActivePlayers,
+                    PrizePool = t.PrizePool
+                }
+            };
         }
 
         public async Task<RegistrationResult?> RebuyPlayerAsync(Guid tournamentId, Guid registrationId, string paymentMethod, string? bank = null, string? reference = null)
@@ -480,6 +489,19 @@ namespace PokerGenys.Services
         {
             if (string.IsNullOrEmpty(provider)) return null;
             return Enum.TryParse<PaymentProvider>(provider, true, out var result) ? result : null;
+        }
+
+        public async Task<TournamentStatsDto?> GetTournamentStatsAsync(Guid id)
+        {
+            var t = await _repo.GetByIdAsync(id);
+            if (t == null) return null;
+
+            return new TournamentStatsDto
+            {
+                Entries = t.TotalEntries,
+                Active = t.ActivePlayers,
+                PrizePool = t.PrizePool
+            };
         }
     }
 }
