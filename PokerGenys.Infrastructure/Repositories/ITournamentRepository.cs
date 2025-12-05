@@ -1,5 +1,5 @@
 ﻿// Infrastructure/Repositories/ITournamentRepository.cs
-using PokerGenys.Domain.Models;
+using PokerGenys.Domain.Models.Tournaments;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

@@ -1,4 +1,5 @@
 ﻿using PokerGenys.Domain.Models;
+using PokerGenys.Domain.Models.CashGame;
 using PokerGenys.Infrastructure.Repositories;
 using System;
 using System.Collections.Generic;

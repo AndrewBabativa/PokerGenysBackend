@@ -1,6 +1,6 @@
 ﻿// Infrastructure/Repositories/TournamentRepository.cs
 using MongoDB.Driver;
-using PokerGenys.Domain.Models;
+using PokerGenys.Domain.Models.Tournaments;
 using PokerGenys.Infrastructure.Data;
 using System;
 using System.Collections.Generic;

@@ -1,6 +1,7 @@
 ﻿// Infrastructure/Data/MongoContext.cs
 using MongoDB.Driver;
 using PokerGenys.Domain.Models;
+using PokerGenys.Domain.Models.Tournaments;
 using PokerGenys.Shared;
 using System.Numerics;
 

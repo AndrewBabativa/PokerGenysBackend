@@ -1,4 +1,4 @@
-﻿namespace PokerGenys.Domain.Models
+﻿namespace PokerGenys.Domain.Models.Tournaments
 {
     public class RegistrationResult
     {

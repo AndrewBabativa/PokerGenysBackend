@@ -1,9 +1,7 @@
 ﻿using MongoDB.Driver;
 using PokerGenys.Domain.Models;
 using PokerGenys.Infrastructure.Data;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using PokerGenys.Domain.Models.CashGame;
 
 namespace PokerGenys.Infrastructure.Repositories
 {

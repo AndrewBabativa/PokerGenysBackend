@@ -1,7 +1,6 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using System;
-using System.Collections.Generic;
+using PokerGenys.Domain.Models.CashGame;
 
 namespace PokerGenys.Domain.Models
 {

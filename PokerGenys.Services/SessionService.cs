@@ -1,9 +1,6 @@
 ﻿using PokerGenys.Domain.Models;
+using PokerGenys.Domain.Models.CashGame;
 using PokerGenys.Infrastructure.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace PokerGenys.Services
 {

@@ -1,4 +1,4 @@
-﻿namespace PokerGenys.Domain.Models
+﻿namespace PokerGenys.Domain.Models.CashGame
 {
     // =========================================================
     // ENUMS DEL SISTEMA DE MESAS CASH

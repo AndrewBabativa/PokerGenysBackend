@@ -1,7 +1,7 @@
 ﻿using MongoDB.Driver;
 using Microsoft.AspNetCore.Mvc;
 using PokerGenys.Infrastructure.Data;
-using PokerGenys.Domain.Models;
+using PokerGenys.Domain.Models.Tournaments;
 
 [ApiController]
 [Route("api/[controller]")]
