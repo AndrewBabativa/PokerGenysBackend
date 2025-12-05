@@ -56,20 +56,17 @@ namespace PokerGenys.API.Controllers
             var t = await _service.StartTournamentAsync(id);
             if (t == null) return NotFound();
 
-            // LÓGICA CLAVE: Calculamos la hora exacta de fin AQUÍ Y AHORA.
-            // TimeLeft es lo que hay en BD (ej: 1150 segundos)
-            double timeLeft = t.ClockState.SecondsRemaining;
-
-            // TargetEndTime = Ahora + Lo que falta. 
-            // El socket solo tiene que hacer cuenta regresiva hasta esta fecha.
-            var targetEndTime = DateTime.UtcNow.AddSeconds(timeLeft);
-
+            // Notificar al Socket Server
+            // IMPORTANTE: Enviamos 'secondsRemaining' actualizado
             await NotifyNodeServer(id, "tournament-control", new
             {
                 type = "start",
-                data = new { level = t.CurrentLevel, timeLeft },
-                // _internalState es para que el Node Server sepa cuándo parar exactamente
-                _internalState = new { targetEndTime = targetEndTime, currentLevel = t.CurrentLevel }
+                data = new
+                {
+                    level = t.CurrentLevel,
+                    timeLeft = t.ClockState.SecondsRemaining,
+                    status = "Running"
+                }
             });
 
             return Ok(t);

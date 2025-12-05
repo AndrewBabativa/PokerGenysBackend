@@ -4,7 +4,7 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace PokerGenys.Domain.Models.Tournaments
 {
     // --- NUEVA CLASE PARA EL ESTADO DEL RELOJ ---
-    public class TournamentClockState
+    public class ClockState
     {
         public bool IsPaused { get; set; } = true;
         public double SecondsRemaining { get; set; } // Tiempo guardado al pausar
@@ -49,7 +49,7 @@ namespace PokerGenys.Domain.Models.Tournaments
         public int CurrentLevel { get; set; } = 1;
 
         // Propiedad nueva para manejar la Pausa correctamente
-        public TournamentClockState ClockState { get; set; } = new();
+        public ClockState ClockState { get; set; } = new();
 
         public int TotalEntries { get; set; }
         public int ActivePlayers { get; set; }

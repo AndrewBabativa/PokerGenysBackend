@@ -23,7 +23,7 @@ namespace PokerGenys.Services
         {
             CalculateFixedPayouts(tournament);
             // Inicializar ClockState
-            tournament.ClockState = new TournamentClockState
+            tournament.ClockState = new ClockState
             {
                 IsPaused = true,
                 SecondsRemaining = 0 // Se calculará al iniciar
@@ -383,7 +383,7 @@ namespace PokerGenys.Services
             if (t.Tables == null) t.Tables = new List<TournamentTable>();
             if (t.Registrations == null) t.Registrations = new List<TournamentRegistration>();
             if (t.Transactions == null) t.Transactions = new List<TournamentTransaction>();
-            if (t.ClockState == null) t.ClockState = new TournamentClockState(); // Asegurar ClockState
+            if (t.ClockState == null) t.ClockState = new ClockState(); // Asegurar ClockState
         }
 
         private void EnsureActiveTableExists(Tournament t)
