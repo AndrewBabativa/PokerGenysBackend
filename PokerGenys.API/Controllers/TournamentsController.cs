@@ -283,7 +283,7 @@ namespace PokerGenys.API.Controllers
         [HttpPost("{id}/registrations/{regId}/rebuy")]
         public async Task<IActionResult> RebuyPlayer(Guid id, Guid regId, string paymentMethod)
         {
-            var result = await _service.RebuyPlayerAsync(id, regId);
+            var result = await _service.RebuyPlayerAsync(id, regId, paymentMethod);
             if (result == null) return BadRequest("No se pudo realizar el rebuy (Verifique nivel o ID)");
 
             // 1. Notificar resurrección del jugador
