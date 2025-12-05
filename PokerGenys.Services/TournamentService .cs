@@ -182,24 +182,22 @@ namespace PokerGenys.Services
         {
             var t = await _repo.GetByIdAsync(id);
             if (t == null) return null;
-
-            // Si ya corre, no tocamos nada para evitar reinicios forzados visuales
             if (t.Status == TournamentStatus.Running) return t;
 
-            // 1. Configurar tiempos
+            // Recuperar configuración del nivel actual
             var currentLevelConfig = t.Levels.FirstOrDefault(l => l.LevelNumber == t.CurrentLevel);
             double levelDuration = currentLevelConfig?.DurationSeconds ?? 0;
 
-            // Si estaba en 0 o negativo, reseteamos al tiempo del nivel actual
-            if (t.ClockState.SecondsRemaining <= 1)
+            // Corrección: Si el tiempo es 0 o negativo (recién creado o nivel acabado), reiniciamos al tiempo del nivel
+            if (t.ClockState.SecondsRemaining <= 0.1)
             {
                 t.ClockState.SecondsRemaining = levelDuration;
             }
 
-            // 2. Marcar "Ahora" como el punto de inicio
+            // MARCA DE TIEMPO UTC REAL
             t.Status = TournamentStatus.Running;
             t.ClockState.IsPaused = false;
-            t.ClockState.LastUpdatedAt = DateTime.UtcNow;
+            t.ClockState.LastUpdatedAt = DateTime.UtcNow; // Punto de anclaje para todos los clientes
 
             if (!t.StartTime.HasValue) t.StartTime = DateTime.UtcNow;
 
@@ -211,57 +209,23 @@ namespace PokerGenys.Services
             var t = await _repo.GetByIdAsync(id);
             if (t == null) return null;
 
-            // Calcular el tiempo real restante antes de pausar
-            UpdateClockStateInternal(t);
+            // 1. "Congelar" el tiempo: Calcular cuánto sobraba exactamente ahora mismo
+            if (!t.ClockState.IsPaused && t.ClockState.LastUpdatedAt.HasValue)
+            {
+                var elapsed = (DateTime.UtcNow - t.ClockState.LastUpdatedAt.Value).TotalSeconds;
+                t.ClockState.SecondsRemaining -= elapsed;
+
+                // Protección contra negativos visuales
+                if (t.ClockState.SecondsRemaining < 0) t.ClockState.SecondsRemaining = 0;
+            }
 
             t.Status = TournamentStatus.Paused;
             t.ClockState.IsPaused = true;
-            // LastUpdatedAt se mantiene para referencia, pero IsPaused evita cálculos futuros
+            t.ClockState.LastUpdatedAt = DateTime.UtcNow; // Referencia de cuándo se pausó
 
             return await _repo.UpdateAsync(t);
         }
 
-        public async Task<TournamentState?> GetTournamentStateAsync(Guid id)
-        {
-            var t = await _repo.GetByIdAsync(id);
-            if (t == null) return null;
-
-            // == MAGIA AQUÍ: AUTO-TRANSICIÓN DE NIVEL ==
-            // Si el torneo está corriendo, calculamos el delta y verificamos si el nivel acabó.
-            bool stateChanged = false;
-
-            if (t.Status == TournamentStatus.Running)
-            {
-                // 1. Actualiza el ClockState en memoria
-                UpdateClockStateInternal(t);
-
-                // 2. Si el tiempo llegó a 0, Avanzar Nivel Automáticamente
-                if (t.ClockState.SecondsRemaining <= 0)
-                {
-                    AdvanceLevelInternal(t);
-                    stateChanged = true;
-                }
-            }
-
-            // Si hubo cambios automáticos (tiempo agotado), guardamos en BD
-            if (stateChanged)
-            {
-                // Actualizamos LastUpdatedAt para que el nuevo nivel empiece a contar desde YA
-                t.ClockState.LastUpdatedAt = DateTime.UtcNow;
-                await _repo.UpdateAsync(t);
-            }
-
-            return new TournamentState
-            {
-                CurrentLevel = t.CurrentLevel,
-                TimeRemaining = (int)Math.Ceiling(t.ClockState.SecondsRemaining),
-                Status = t.Status,
-                RegisteredCount = t.TotalEntries,
-                PrizePool = t.PrizePool,
-                // Agregamos info de ciegas para el frontend
-                Blinds = GetBlindsInfo(t)
-            };
-        }
 
         // =============================================================
         // 4. VENTAS Y TRANSACCIONES
@@ -519,44 +483,71 @@ namespace PokerGenys.Services
             return Enum.TryParse<PaymentProvider>(provider, true, out var result) ? result : null;
         }
 
-        public async Task<TournamentStatsDto?> GetTournamentStatsAsync(Guid id)
+        public async Task<TournamentState?> GetTournamentStateAsync(Guid id)
         {
             var t = await _repo.GetByIdAsync(id);
             if (t == null) return null;
 
-            return new TournamentStatsDto
+            double projectedSeconds = t.ClockState.SecondsRemaining;
+            bool needsUpdate = false;
+
+            // LÓGICA DE PROYECCIÓN (No guardamos en BD cada segundo, solo calculamos)
+            if (t.Status == TournamentStatus.Running && !t.ClockState.IsPaused && t.ClockState.LastUpdatedAt.HasValue)
             {
-                Entries = t.TotalEntries,
-                Active = t.ActivePlayers,
-                PrizePool = t.PrizePool
+                var elapsed = (DateTime.UtcNow - t.ClockState.LastUpdatedAt.Value).TotalSeconds;
+                projectedSeconds -= elapsed;
+
+                // SI EL TIEMPO SE ACABÓ -> Cambiar Nivel (Aquí sí escribimos en BD)
+                if (projectedSeconds <= 0)
+                {
+                    AdvanceLevelInternal(t); // Esto resetea SecondsRemaining al nuevo nivel
+                    projectedSeconds = t.ClockState.SecondsRemaining; // Actualizar proyección
+                    needsUpdate = true;
+                }
+            }
+
+            if (needsUpdate)
+            {
+                t.ClockState.LastUpdatedAt = DateTime.UtcNow; // Nuevo anclaje para el nuevo nivel
+                await _repo.UpdateAsync(t);
+            }
+
+            return new TournamentState
+            {
+                CurrentLevel = t.CurrentLevel,
+                TimeRemaining = (int)Math.Max(0, Math.Ceiling(projectedSeconds)), // Enviar siempre positivo
+                Status = t.Status,
+                RegisteredCount = t.TotalEntries,
+                PrizePool = t.PrizePool,
+                Blinds = GetBlindsInfo(t)
             };
         }
 
         private RemoveResult CheckForStructureEvents(Tournament t)
         {
             var activePlayers = t.Registrations.Where(r => r.Status == RegistrationStatus.Active).ToList();
-            var activeTables = t.Tables.Where(tb => tb.Status == TournamentTableStatus.Active).ToList();
+            var activeTables = t.Tables.Where(tb => tb.Status == TournamentTableStatus.Active || tb.Status == TournamentTableStatus.FinalTable).ToList(); // IMPORTANTE: Incluir FinalTable en la cuenta
+
             int ftSize = t.Seating.FinalTableSize > 0 ? t.Seating.FinalTableSize : 9;
 
-            // ... (Lógica de Ganador igual) ...
-
-            // CASO B: MESA FINAL
+            // CASO: MESA FINAL
+            // Solo entramos si hay más de 1 mesa activa y llegamos al número de jugadores
             if (activePlayers.Count <= ftSize && activeTables.Count > 1)
             {
-                // 1. Identificar Mesa Final (Mesa 1 o la menor disponible)
+                // 1. Elegir la mesa destino (La mesa 1, o reutilizar una existente)
                 var finalTable = t.Tables.OrderBy(tb => tb.TableNumber).FirstOrDefault(tb => tb.Status != TournamentTableStatus.Broken);
                 if (finalTable == null) return new RemoveResult { Success = true };
 
                 finalTable.Name = "Mesa Final";
-                finalTable.Status = TournamentTableStatus.FinalTable;
+                finalTable.Status = TournamentTableStatus.FinalTable; // Ojo con este estado en el Frontend
 
-                // 2. Romper las otras mesas
+                // 2. Romper las demás mesas
                 foreach (var table in activeTables.Where(tb => tb.Id != finalTable.Id))
                 {
                     table.Status = TournamentTableStatus.Broken;
                 }
 
-                // 3. Shuffle Seats
+                // 3. Reseat aleatorio
                 var rng = new Random();
                 var shuffledPlayers = activePlayers.OrderBy(x => rng.Next()).ToList();
                 int seat = 1;
@@ -568,16 +559,12 @@ namespace PokerGenys.Services
                     seat++;
                 }
 
-                // RETORNAMOS EXTRA DATA PARA EL SOCKET
                 return new RemoveResult
                 {
                     Success = true,
                     InstructionType = "FINAL_TABLE_START",
                     Message = "¡Mesa Final Formada!",
-                    // Guardamos ID de mesa final y los jugadores reordenados para el frontend
-                    FromTable = finalTable.Id.ToString(),
-                    // Truco: Usamos un campo existente o serializamos en Message si no quieres cambiar el DTO, 
-                    // pero lo ideal es que el Controller lea esto.
+                    FromTable = finalTable.Id.ToString()
                 };
             }
             return new RemoveResult { Success = true };
@@ -599,21 +586,20 @@ namespace PokerGenys.Services
 
         private void AdvanceLevelInternal(Tournament t)
         {
-            // 1. Buscar configuración del SIGUIENTE nivel
             var nextLevelNum = t.CurrentLevel + 1;
             var nextLevelConfig = t.Levels.FirstOrDefault(l => l.LevelNumber == nextLevelNum);
 
             if (nextLevelConfig != null)
             {
-                // Pasamos al siguiente nivel
                 t.CurrentLevel = nextLevelNum;
-                t.ClockState.SecondsRemaining = nextLevelConfig.DurationSeconds; // Reseteamos reloj
+                t.ClockState.SecondsRemaining = nextLevelConfig.DurationSeconds;
+                // No cambiamos IsPaused, sigue corriendo
             }
             else
             {
-                // No hay más niveles: Pausar torneo o marcar como finalizado
+                // Fin del torneo o estructura
                 t.ClockState.SecondsRemaining = 0;
-                t.Status = TournamentStatus.Paused; // O Finished
+                t.Status = TournamentStatus.Paused;
                 t.ClockState.IsPaused = true;
             }
         }
@@ -623,5 +609,6 @@ namespace PokerGenys.Services
             var l = t.Levels.FirstOrDefault(x => x.LevelNumber == t.CurrentLevel);
             return l != null ? $"{l.SmallBlind}/{l.BigBlind}" : "-/-";
         }
+
     }
 }

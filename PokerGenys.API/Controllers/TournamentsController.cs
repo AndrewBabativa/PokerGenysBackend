@@ -42,8 +42,21 @@ namespace PokerGenys.API.Controllers
 
         private async Task NotifyWithStats(Guid tournamentId, string action, object payload)
         {
-            var stats = await _service.GetTournamentStatsAsync(tournamentId);
-            await NotifyNodeServer(tournamentId, "player-action", new { action, payload, stats = stats != null ? new { entries = stats.Entries, active = stats.Active, prizePool = stats.PrizePool } : null });
+            // 1. Reutilizamos el método GetByIdAsync que ya está optimizado en el repo
+            var t = await _service.GetByIdAsync(tournamentId);
+
+            if (t != null)
+            {
+                // 2. Extraemos los datos directamente del objeto
+                var stats = new
+                {
+                    entries = t.TotalEntries,
+                    active = t.ActivePlayers,
+                    prizePool = t.PrizePool
+                };
+
+                await NotifyNodeServer(tournamentId, "player-action", new { action, payload, stats });
+            }
         }
 
         // ============================================================
