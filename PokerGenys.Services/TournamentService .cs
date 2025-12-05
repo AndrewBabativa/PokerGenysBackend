@@ -586,3 +586,4 @@ namespace PokerGenys.Services
             return new RemoveResult { Success = true };
         }
     }
+}
