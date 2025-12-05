@@ -379,21 +379,86 @@ namespace PokerGenys.Services
             }
         }
 
-        // ... AssignSmartSeat, CheckForTableBalancing, CleanupEmptyTables, etc se mantienen igual ...
-        // INCLUYE AQUÍ EL CÓDIGO DE ASIGNACIÓN DE ASIENTOS Y BALANCEO QUE YA TENÍAS FUNCIONANDO //
-        // (He omitido repetirlos para ahorrar espacio, pero no los borres de tu archivo)
-
         private (string? InstructionType, string Message) AssignSmartSeat(Tournament t, TournamentRegistration reg)
         {
-            // Lógica existente de asignación inteligente
+            var activePlayers = t.Registrations.Where(r => r.Status == RegistrationStatus.Active).ToList();
             var activeTables = t.Tables.Where(tb => tb.Status == TournamentTableStatus.Active).ToList();
-            // ... resto de tu lógica ...
-            // Mock simple para completar el código si copias y pegas:
-            if (!activeTables.Any()) return (null, "Sin mesas activas");
-            var table = activeTables.First();
-            reg.TableId = table.Id.ToString();
-            reg.SeatId = "1"; // Simplificado
-            return (null, "Asignado");
+
+            int seatsPerTable = t.Seating.SeatsPerTable > 0 ? t.Seating.SeatsPerTable : 9;
+
+            // 1. Verificar si necesitamos abrir una mesa nueva
+            // (Si la capacidad actual está al 100% llena)
+            int currentCapacity = activeTables.Count * seatsPerTable;
+            // Contamos los activos + el nuevo que va a entrar
+            int totalActiveWithNew = activePlayers.Count + (activePlayers.Any(x => x.Id == reg.Id) ? 0 : 1);
+
+            if (totalActiveWithNew > currentCapacity)
+            {
+                // LÓGICA DE APERTURA DE MESA Y BALANCEO
+                int nextNum = t.Tables.Any() ? t.Tables.Max(x => x.TableNumber) + 1 : 1;
+                var newTable = new TournamentTable
+                {
+                    Id = Guid.NewGuid(),
+                    TournamentId = t.Id,
+                    TableNumber = nextNum,
+                    Name = $"Mesa {nextNum}",
+                    Status = TournamentTableStatus.Active
+                };
+                t.Tables.Add(newTable);
+                activeTables.Add(newTable);
+
+                // Movemos a la mitad de la mesa más llena para balancear
+                // (Estrategia simple: Tomar la mesa con más gente y mover la mitad)
+                var fullestTable = activeTables
+                    .OrderByDescending(tb => activePlayers.Count(p => p.TableId == tb.Id.ToString()))
+                    .First();
+
+                var victims = activePlayers
+                    .Where(p => p.TableId == fullestTable.Id.ToString())
+                    .OrderBy(x => Guid.NewGuid()) // Randomizar quién se mueve
+                    .Take(activePlayers.Count(p => p.TableId == fullestTable.Id.ToString()) / 2)
+                    .ToList();
+
+                // Asignar víctimas a la nueva mesa (Sillas 1, 2, 3...)
+                int seatCounter = 1;
+                foreach (var v in victims)
+                {
+                    v.TableId = newTable.Id.ToString();
+                    v.SeatId = seatCounter.ToString();
+                    seatCounter++;
+                }
+
+                // Asignar al NUEVO jugador a la nueva mesa también
+                reg.TableId = newTable.Id.ToString();
+                reg.SeatId = seatCounter.ToString();
+
+                return ("INFO_ALERT", $"Se abrió la Mesa {nextNum} y se balancearon jugadores.");
+            }
+
+            // 2. Asignación Normal (Buscar hueco en mesas existentes)
+            // Buscamos la mesa con más huecos para mantener balance, o simplemente la primera con espacio
+            var targetTable = activeTables
+                .OrderBy(tb => activePlayers.Count(p => p.TableId == tb.Id.ToString())) // Llenar la más vacía primero
+                .FirstOrDefault(tb => activePlayers.Count(p => p.TableId == tb.Id.ToString()) < seatsPerTable);
+
+            if (targetTable == null) return (null, "Error crítico: No hay mesas disponibles.");
+
+            // 3. ENCONTRAR EL PRIMER 'SEAT_ID' DISPONIBLE (Esto arregla la superposición)
+            var occupiedSeats = activePlayers
+                .Where(p => p.TableId == targetTable.Id.ToString() && int.TryParse(p.SeatId, out _))
+                .Select(p => int.Parse(p.SeatId!))
+                .ToHashSet();
+
+            int freeSeat = 1;
+            while (occupiedSeats.Contains(freeSeat))
+            {
+                freeSeat++;
+            }
+
+            reg.TableId = targetTable.Id.ToString();
+            reg.SeatId = freeSeat.ToString();
+
+            return (null, $"Asignado a {targetTable.Name}, Silla {freeSeat}");
         }
 
         private void CleanupEmptyTables(Tournament t) { /* Tu lógica existente */ }
