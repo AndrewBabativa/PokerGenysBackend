@@ -179,25 +179,40 @@ namespace PokerGenys.Services
         // 3. CONTROL DE JUEGO (OPTIMIZADO)
         // =============================================================
 
+        // En TournamentService.cs
+
         public async Task<Tournament?> StartTournamentAsync(Guid id)
         {
             var t = await _repo.GetByIdAsync(id);
             if (t == null) return null;
 
-            // Si es la primera vez que inicia
-            if (!t.StartTime.HasValue)
+            // Calcular la duración acumulada de los niveles anteriores
+            var sortedLevels = t.Levels.OrderBy(l => l.LevelNumber).ToList();
+            double totalTimePlayedInPrevLevels = 0;
+
+            // Sumar duración de niveles ya completados (si vamos en el nivel 3, sumamos nivel 1 y 2)
+            foreach (var lvl in sortedLevels.Where(l => l.LevelNumber < t.CurrentLevel))
             {
-                t.StartTime = DateTime.UtcNow;
-                t.CurrentLevel = 1;
-                // Cargar tiempo del nivel 1
-                var level1 = t.Levels.FirstOrDefault(l => l.LevelNumber == 1);
-                t.ClockState.SecondsRemaining = level1 != null ? level1.DurationSeconds : 1200; // Default 20min
+                totalTimePlayedInPrevLevels += lvl.DurationSeconds;
             }
 
-            // Lógica de RESUME (Reanudar)
+            // Calcular cuánto tiempo se ha jugado del nivel actual
+            // Tiempo jugado del nivel actual = Duración Total Nivel - Tiempo Restante Guardado
+            var currentLevelConfig = sortedLevels.FirstOrDefault(l => l.LevelNumber == t.CurrentLevel);
+            double durationCurrent = currentLevelConfig?.DurationSeconds ?? 0;
+            double timePlayedInCurrent = Math.Max(0, durationCurrent - t.ClockState.SecondsRemaining);
+
+            // TOTAL DE SEGUNDOS QUE "DEBERÍAN" HABER PASADO
+            double totalTheoreticalElapsed = totalTimePlayedInPrevLevels + timePlayedInCurrent;
+
+            // AJUSTAR START TIME: 
+            // "Si el torneo hubiera corrido sin pausa, ¿a qué hora debió empezar para estar exactamente aquí?"
+            t.StartTime = DateTime.UtcNow.AddSeconds(-totalTheoreticalElapsed);
+
+            // Actualizar estado
             t.Status = TournamentStatus.Running;
             t.ClockState.IsPaused = false;
-            t.ClockState.LastUpdatedAt = DateTime.UtcNow; // Marcamos cuándo arrancó el reloj
+            t.ClockState.LastUpdatedAt = DateTime.UtcNow;
 
             return await _repo.UpdateAsync(t);
         }
@@ -575,7 +590,7 @@ namespace PokerGenys.Services
                 foreach (var p in shuffledPlayers)
                 {
                     p.TableId = finalTable.Id.ToString();
-                    p.SeatId = seat.ToString(); // Asignación 1, 2, 3, 4, 5...
+                    p.SeatId = seat.ToString(); 
                     seat++;
                 }
 

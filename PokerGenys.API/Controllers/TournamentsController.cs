@@ -184,13 +184,32 @@ namespace PokerGenys.API.Controllers
             return Ok(result);
         }
 
+        // En TournamentsController.cs -> RemoveRegistration
+
         [HttpDelete("{id}/registrations/{regId}")]
         public async Task<IActionResult> RemoveRegistration(Guid id, Guid regId)
         {
             var result = await _service.RemoveRegistrationAsync(id, regId);
             if (!result.Success) return NotFound();
 
+            // 1. Notificación estándar de actualización de datos (Jugador eliminado)
             await NotifyWithStats(id, "remove", new { registrationId = regId });
+
+            // 2. CORRECCIÓN: Notificación de Eventos Críticos (Mesa Final / Ganador)
+            // Usamos el canal 'tournament-instruction' que el TvPage ya escucha
+            if (!string.IsNullOrEmpty(result.InstructionType))
+            {
+                await NotifyNodeServer(id, "tournament-instruction", new
+                {
+                    type = result.InstructionType, // "FINAL_TABLE_START" o "TOURNAMENT_WINNER"
+                    message = result.Message,
+                    data = new
+                    {
+                        // Enviamos datos frescos para evitar el delay del refetch
+                        winnerName = result.InstructionType == "TOURNAMENT_WINNER" ? result.Message.Replace("¡Tenemos un Campeón: ", "").Replace("!", "") : null
+                    }
+                });
+            }
 
             return Ok(result);
         }
