@@ -69,15 +69,15 @@ namespace PokerGenys.API.Controllers
             var t = await _service.StartTournamentAsync(id);
             if (t == null) return NotFound();
 
-            // Notificar al Socket Server
-            // IMPORTANTE: Enviamos 'secondsRemaining' actualizado
+            // CORRECCIÓN: Enviamos 'lastUpdatedAt' para que el frontend se sincronice
             await NotifyNodeServer(id, "tournament-control", new
             {
                 type = "start",
                 data = new
                 {
                     level = t.CurrentLevel,
-                    timeLeft = t.ClockState.SecondsRemaining,
+                    timeLeft = t.ClockState.SecondsRemaining, // Tiempo base
+                    lastUpdatedAt = t.ClockState.LastUpdatedAt, // IMPORTANTE: El ancla de tiempo
                     status = "Running"
                 }
             });
