@@ -53,13 +53,13 @@ namespace PokerGenys.Domain.Models.Tournaments
         public int ActivePlayers { get; set; }
 
 
-        [BsonIgnore]
+
         public List<TournamentTable> Tables { get; set; } = new();
 
-        [BsonIgnore]
+
         public List<TournamentRegistration> Registrations { get; set; } = new();
 
-        [BsonIgnore]
+
         public List<TournamentTransaction> Transactions { get; set; } = new();
     }
 }

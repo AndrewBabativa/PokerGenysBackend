@@ -240,12 +240,10 @@ namespace PokerGenys.API.Controllers
         [HttpGet("{id}/tables")]
         public async Task<IActionResult> GetTables(Guid id)
         {
-            // Opción segura: Obtenemos el torneo y devolvemos sus mesas
             var t = await _service.GetByIdAsync(id);
-
             if (t == null) return NotFound();
 
-            // Devolvemos la lista de mesas (o una lista vacía si es null)
+            // Ahora que quitamos [BsonIgnore], esta lista vendrá llena desde la BD
             return Ok(t.Tables ?? new List<TournamentTable>());
         }
     }
