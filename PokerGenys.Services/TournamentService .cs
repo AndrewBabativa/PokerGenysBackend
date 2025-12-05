@@ -307,6 +307,9 @@ namespace PokerGenys.Services
         // OTROS Y HELPERS
         // =============================================================
 
+        // ============================================================
+        // LÓGICA DE ELIMINACIÓN Y GESTIÓN DE ESTRUCTURA
+        // ============================================================
         public async Task<RemoveResult> RemoveRegistrationAsync(Guid tournamentId, Guid regId)
         {
             var t = await _repo.GetByIdAsync(tournamentId);
@@ -316,41 +319,23 @@ namespace PokerGenys.Services
             var player = t.Registrations.FirstOrDefault(r => r.Id == regId);
             if (player == null) return new RemoveResult { Success = false };
 
-            // 1. Marcar Eliminado
+            // 1. Marcar como Eliminado y guardar timestamp
             player.Status = RegistrationStatus.Eliminated;
             player.EliminatedAt = DateTime.UtcNow;
-
-            // Asignar Rank (Posición) Inverso
-            // Si había 10 activos y elimino 1, este queda en posición 10.
-            int currentRank = t.ActivePlayers;
-            // Guardamos el rank en algún campo, si tienes uno (ej: Metadata o campo Rank)
-            // player.Rank = currentRank; 
-
             player.TableId = null;
             player.SeatId = null;
-            t.ActivePlayers--;
 
-            // 2. Limpiar mesas vacías
+            // Actualizar contadores
+            t.ActivePlayers = t.Registrations.Count(r => r.Status == RegistrationStatus.Active);
+
+            // 2. Limpiar mesas vacías (Regla de negocio)
             CleanupEmptyTables(t);
 
-            // 3. Balancear o Detectar Mesa Final
-            var balanceResult = CheckForTableBalancing(t);
-
-            // 4. DETECCION DE GANADOR (HEADS UP FINALIZADO)
-            if (t.ActivePlayers == 1)
-            {
-                var winner = t.Registrations.FirstOrDefault(r => r.Status == RegistrationStatus.Active);
-                if (winner != null)
-                {
-                    t.Status = TournamentStatus.Finished;
-                    // Notificar Ganador
-                    balanceResult.InstructionType = "TOURNAMENT_WINNER";
-                    balanceResult.Message = winner.PlayerName;
-                }
-            }
+            // 3. Verificar eventos importantes (Mesa Final o Ganador)
+            var result = CheckForStructureEvents(t);
 
             await _repo.UpdateAsync(t);
-            return balanceResult;
+            return result;
         }
 
         public async Task<TournamentRegistration?> AssignSeatAsync(Guid tournamentId, Guid regId, string tableId, string seatId)
@@ -497,12 +482,15 @@ namespace PokerGenys.Services
 
         private void CleanupEmptyTables(Tournament t)
         {
-            var activePlayers = t.Registrations.Where(r => r.Status == RegistrationStatus.Active).ToList();
+            var activeTableIds = t.Registrations
+                .Where(r => r.Status == RegistrationStatus.Active && !string.IsNullOrEmpty(r.TableId))
+                .Select(r => r.TableId)
+                .Distinct()
+                .ToList();
 
             foreach (var table in t.Tables.Where(tb => tb.Status == TournamentTableStatus.Active).ToList())
             {
-                bool hasPlayers = activePlayers.Any(p => p.TableId == table.Id.ToString());
-                if (!hasPlayers)
+                if (!activeTableIds.Contains(table.Id.ToString()))
                 {
                     table.Status = TournamentTableStatus.Broken; // O "Closed"
                 }
@@ -540,46 +528,62 @@ namespace PokerGenys.Services
             };
         }
 
-        private RemoveResult CheckForTableBalancing(Tournament t)
+        private RemoveResult CheckForStructureEvents(Tournament t)
         {
             var activePlayers = t.Registrations.Where(r => r.Status == RegistrationStatus.Active).ToList();
             var activeTables = t.Tables.Where(tb => tb.Status == TournamentTableStatus.Active).ToList();
 
+            // Configuración por defecto si no existe
             int ftSize = t.Seating.FinalTableSize > 0 ? t.Seating.FinalTableSize : 9;
 
-            // CASO: MESA FINAL (Activos <= Tamaño FT, pero hay más de 1 mesa abierta)
+            // --- CASO A: GANADOR DEL TORNEO ---
+            if (activePlayers.Count == 1)
+            {
+                t.Status = TournamentStatus.Finished;
+                var winner = activePlayers.First();
+
+                return new RemoveResult
+                {
+                    Success = true,
+                    InstructionType = "TOURNAMENT_WINNER", // Esto activará la WinnerView
+                    Message = $"¡Tenemos un Campeón: {winner.PlayerName}!"
+                };
+            }
+
+            // --- CASO B: FORMACIÓN DE MESA FINAL ---
+            // Se activa si: Activos <= Tamaño FT  Y  Hay más de 1 mesa abierta
             if (activePlayers.Count <= ftSize && activeTables.Count > 1)
             {
-                // 1. Elegir la mesa final (usualmente la Mesa 1 o creamos una nueva "Final Table")
-                var finalTable = t.Tables.FirstOrDefault(tb => tb.TableNumber == 1)
-                                 ?? activeTables.First();
+                // 1. Identificar o Crear Mesa Final (Usamos Mesa 1 por defecto)
+                var finalTable = t.Tables.OrderBy(tb => tb.TableNumber).FirstOrDefault(tb => tb.Status != TournamentTableStatus.Broken);
+                if (finalTable == null) return new RemoveResult { Success = true };
 
-                finalTable.Status = TournamentTableStatus.FinalTable;
                 finalTable.Name = "Mesa Final";
+                finalTable.Status = TournamentTableStatus.FinalTable;
 
-                // 2. Romper las demás mesas
+                // 2. Cerrar todas las demás mesas
                 foreach (var table in activeTables.Where(tb => tb.Id != finalTable.Id))
                 {
                     table.Status = TournamentTableStatus.Broken;
                 }
 
-                // 3. SORTEO DE PUESTOS (Shuffle Seats)
+                // 3. SHUFFLE SEATS (Sorteo de puestos)
                 var rng = new Random();
-                var shuffledPlayers = activePlayers.OrderBy(a => rng.Next()).ToList();
+                var shuffledPlayers = activePlayers.OrderBy(x => rng.Next()).ToList();
                 int seat = 1;
 
                 foreach (var p in shuffledPlayers)
                 {
                     p.TableId = finalTable.Id.ToString();
-                    p.SeatId = seat.ToString();
+                    p.SeatId = seat.ToString(); // Asignación 1, 2, 3, 4, 5...
                     seat++;
                 }
 
                 return new RemoveResult
                 {
                     Success = true,
-                    InstructionType = "FINAL_TABLE_START", // <--- Esto activará la TV
-                    Message = "¡Se ha formado la Mesa Final!"
+                    InstructionType = "FINAL_TABLE_START",
+                    Message = "Mesa Final formada. ¡Asientos sorteados!"
                 };
             }
 
