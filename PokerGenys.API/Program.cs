@@ -66,12 +66,27 @@ builder.Services.AddScoped<IPlayerService, PlayerService>();
 // ==========================================
 builder.Services.AddCors(options =>
 {
+    options.AddPolicy("AllowSpecificOrigins", policy =>
+    {
+        policy.WithOrigins(
+            "http://localhost:5173",            // Tu local Vite
+            "http://localhost:4000",            // Tu local Backend (si aplica)
+            "https://pokergenys.netlify.app",   // <--- TU FRONTEND EN NETLIFY
+            "https://pokergenys-frontend.netlify.app" // Por si acaso tienes alias
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials(); // Importante si usas SignalR o Cookies
+    });
+
+    // OPCIONAL: Política "Permitir Todo" solo para desarrollo/pruebas rápidas
+    // Úsala con precaución en producción
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.SetIsOriginAllowed(origin => true) // Acepta CUALQUIER origen (útil para debug)
-              .AllowAnyMethod()
+        policy.SetIsOriginAllowed(origin => true)
               .AllowAnyHeader()
-              .AllowCredentials(); // Necesario si usas SignalR/WebSockets o Cookies
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
