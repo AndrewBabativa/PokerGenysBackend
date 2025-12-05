@@ -66,27 +66,12 @@ builder.Services.AddScoped<IPlayerService, PlayerService>();
 // ==========================================
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowSpecificOrigins", policy =>
-    {
-        policy.WithOrigins(
-            "http://localhost:5173",            // Tu local Vite
-            "http://localhost:4000",            // Tu local Backend (si aplica)
-            "https://pokergenys.netlify.app",   // <--- TU FRONTEND EN NETLIFY
-            "https://pokergenys-frontend.netlify.app" // Por si acaso tienes alias
-        )
-        .AllowAnyHeader()
-        .AllowAnyMethod()
-        .AllowCredentials(); // Importante si usas SignalR o Cookies
-    });
-
-    // OPCIONAL: Política "Permitir Todo" solo para desarrollo/pruebas rápidas
-    // Úsala con precaución en producción
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.SetIsOriginAllowed(origin => true)
+        policy.SetIsOriginAllowed(_ => true) // <--- ¡LA MAGIA! Acepta cualquier origen que pida entrar
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials();
+              .AllowCredentials(); // Necesario para SignalR/Sockets y Auth
     });
 });
 
@@ -139,7 +124,7 @@ app.UseSwaggerUI(c =>
 
 app.UseHttpsRedirection();
 
-app.UseCors(); // CORS debe ir antes de MapControllers
+app.UseCors("AllowAll");// CORS debe ir antes de MapControllers
 
 app.UseAuthorization(); // Si tienes auth en el futuro
 
