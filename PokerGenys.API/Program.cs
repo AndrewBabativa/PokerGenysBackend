@@ -66,17 +66,12 @@ builder.Services.AddScoped<IPlayerService, PlayerService>();
 // ==========================================
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins(
-            "http://localhost:5173",            // Vite Local
-            "http://192.168.80.22:5173",        // Red Local IP
-            "http://localhost:4000",            // Backend Local
-            "https://pokergenys.netlify.app"    // Producción Frontend
-        )
-        .AllowAnyHeader()
-        .AllowAnyMethod()
-        .AllowCredentials();
+        policy.SetIsOriginAllowed(origin => true) // Acepta CUALQUIER origen (útil para debug)
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials(); // Necesario si usas SignalR/WebSockets o Cookies
     });
 });
 
