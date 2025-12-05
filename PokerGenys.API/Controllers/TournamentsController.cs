@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PokerGenys.Domain.Models;
+using PokerGenys.Domain.Models.Tournaments;
 using PokerGenys.Services;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
-using PokerGenys.Domain.Models.Tournaments;
 
 namespace PokerGenys.API.Controllers
 {
@@ -234,6 +235,18 @@ namespace PokerGenys.API.Controllers
 
             var result = await _service.RecordTransactionAsync(id, tx);
             return result == null ? NotFound() : Ok(result);
+        }
+
+        [HttpGet("{id}/tables")]
+        public async Task<IActionResult> GetTables(Guid id)
+        {
+            // Opción segura: Obtenemos el torneo y devolvemos sus mesas
+            var t = await _service.GetByIdAsync(id);
+
+            if (t == null) return NotFound();
+
+            // Devolvemos la lista de mesas (o una lista vacía si es null)
+            return Ok(t.Tables ?? new List<TournamentTable>());
         }
     }
 }
