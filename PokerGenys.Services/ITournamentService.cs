@@ -44,5 +44,9 @@ namespace PokerGenys.Services
         Task<TournamentTransaction?> RecordTransactionAsync(Guid tournamentId, TournamentTransaction transaction);
 
         Task<decimal> GetTotalPrizePoolAsync(Guid tournamentId);
+        Task<Tournament?> PauseTournamentAsync(Guid id);
+
+
+
     }
 }
