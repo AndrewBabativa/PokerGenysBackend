@@ -56,16 +56,20 @@ namespace PokerGenys.API.Controllers
             var t = await _service.StartTournamentAsync(id);
             if (t == null) return NotFound();
 
-            // Lógica de Reloj: Enviamos la HORA DE FIN exacta para que no haya desfase
-            var currentLevelDuration = t.Levels.FirstOrDefault(l => l.LevelNumber == t.CurrentLevel)?.DurationSeconds ?? 0;
-            var timeLeft = t.ClockState?.SecondsRemaining > 0 ? t.ClockState.SecondsRemaining : currentLevelDuration;
-            var levelEndTime = DateTime.UtcNow.AddSeconds(timeLeft);
+            // LÓGICA CLAVE: Calculamos la hora exacta de fin AQUÍ Y AHORA.
+            // TimeLeft es lo que hay en BD (ej: 1150 segundos)
+            double timeLeft = t.ClockState.SecondsRemaining;
+
+            // TargetEndTime = Ahora + Lo que falta. 
+            // El socket solo tiene que hacer cuenta regresiva hasta esta fecha.
+            var targetEndTime = DateTime.UtcNow.AddSeconds(timeLeft);
 
             await NotifyNodeServer(id, "tournament-control", new
             {
                 type = "start",
                 data = new { level = t.CurrentLevel, timeLeft },
-                _internalState = new { targetEndTime = levelEndTime, currentLevel = t.CurrentLevel }
+                // _internalState es para que el Node Server sepa cuándo parar exactamente
+                _internalState = new { targetEndTime = targetEndTime, currentLevel = t.CurrentLevel }
             });
 
             return Ok(t);
@@ -151,14 +155,28 @@ namespace PokerGenys.API.Controllers
 
             await NotifyWithStats(id, "remove", new { registrationId = regId });
 
-            // Lógica para TV: Notificar si hay Ganador o Mesa Final
             if (!string.IsNullOrEmpty(result.InstructionType))
             {
-                string? winnerName = null;
-                if (result.InstructionType == "TOURNAMENT_WINNER" && !string.IsNullOrEmpty(result.Message))
-                    winnerName = result.Message.Replace("¡Tenemos un Campeón: ", "").Replace("!", "").Trim();
+                object extraData = null;
 
-                await NotifyNodeServer(id, "tournament-instruction", new { type = result.InstructionType, message = result.Message, data = new { winnerName } });
+                // OPTIMIZACIÓN: Si es Mesa Final, enviamos la lista de jugadores YA actualizada
+                if (result.InstructionType == "FINAL_TABLE_START")
+                {
+                    var registrations = await _service.GetRegistrationsAsync(id);
+                    extraData = new { players = registrations }; // Enviamos todo el array
+                }
+                else if (result.InstructionType == "TOURNAMENT_WINNER")
+                {
+                    string winnerName = result.Message.Replace("¡Tenemos un Campeón: ", "").Replace("!", "").Trim();
+                    extraData = new { winnerName };
+                }
+
+                await NotifyNodeServer(id, "tournament-instruction", new
+                {
+                    type = result.InstructionType,
+                    message = result.Message,
+                    data = extraData
+                });
             }
             return Ok(result);
         }
@@ -216,25 +234,5 @@ namespace PokerGenys.API.Controllers
             var result = await _service.RecordTransactionAsync(id, tx);
             return result == null ? NotFound() : Ok(result);
         }
-    }
-
-    // ============================================================
-    // CLASES AUXILIARES (DTOs) FALTANTES
-    // ============================================================
-    // Estas 2 clases son OBLIGATORIAS para que el código compile, 
-    // ya que no están en tu Namespace de Domain Models.
-
-    public class RegisterRequest
-    {
-        public string PlayerName { get; set; } = "";
-        public string PaymentMethod { get; set; } = "Cash";
-        public string? Bank { get; set; }
-        public string? Reference { get; set; }
-    }
-
-    public class SeatRequest
-    {
-        public string TableId { get; set; } = "";
-        public string SeatId { get; set; } = "";
     }
 }
