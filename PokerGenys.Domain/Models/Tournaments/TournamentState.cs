@@ -13,5 +13,6 @@ namespace PokerGenys.Domain.Models.Tournaments
         public TournamentStatus Status { get; set; } 
         public int RegisteredCount { get; set; }
         public decimal PrizePool { get; set; }
+        public string Blinds { get; set; }
     }
 }
