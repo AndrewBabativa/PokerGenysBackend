@@ -455,8 +455,15 @@ namespace PokerGenys.Services
                 t.Tables.Add(newTable);
                 activeTables.Add(newTable);
 
-                var crowdedTable = activeTables.OrderByDescending(tb => activePlayers.Count(p => p.TableId == tb.Id.ToString())).First();
-                var victims = activePlayers.Where(p => p.TableId == crowdedTable.Id.ToString()).OrderByDescending(p => p.RegisteredAt).Take(activePlayers.Count(p => p.TableId == crowdedTable.Id.ToString()) / 2).ToList();
+                var crowdedTable = activeTables
+                                    .OrderByDescending(tb => activePlayers.Count(p => p.TableId == tb.Id.ToString()))
+                                    .First();
+
+                var victims = activePlayers
+                                    .Where(p => p.TableId == crowdedTable.Id.ToString())
+                                    .OrderBy(x => Guid.NewGuid()) // <--- ESTO HACE LA MAGIA DEL RANDOM
+                                    .Take(activePlayers.Count(p => p.TableId == crowdedTable.Id.ToString()) / 2)
+                                    .ToList();
 
                 foreach (var v in victims) { v.TableId = newTable.Id.ToString(); v.SeatId = null; }
                 reg.TableId = newTable.Id.ToString();
