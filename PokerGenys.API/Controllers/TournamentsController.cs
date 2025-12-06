@@ -157,30 +157,57 @@ namespace PokerGenys.API.Controllers
             return Ok(result);
         }
 
+        // ... imports
+
         [HttpDelete("{id}/registrations/{regId}")]
         public async Task<IActionResult> RemoveRegistration(Guid id, Guid regId)
         {
             var result = await _service.RemoveRegistrationAsync(id, regId);
             if (!result.Success) return NotFound();
 
+            // Notificar estadísticas básicas
             await NotifyWithStats(id, "remove", new { registrationId = regId });
 
             if (!string.IsNullOrEmpty(result.InstructionType))
             {
                 object extraData = null;
 
-                // OPTIMIZACIÓN: Si es Mesa Final, enviamos la lista de jugadores YA actualizada
+                // CASO 1: Inicio de Mesa Final
                 if (result.InstructionType == "FINAL_TABLE_START")
                 {
                     var registrations = await _service.GetRegistrationsAsync(id);
-                    extraData = new { players = registrations }; // Enviamos todo el array
+                    extraData = new { players = registrations };
                 }
-                else if (result.InstructionType == "TOURNAMENT_WINNER")
+                // CASO 2: Ganador del Torneo (Manejamos ambos strings por seguridad)
+                else if (result.InstructionType == "TOURNAMENT_WINNER" || result.InstructionType == "FINAL_TABLE_FINISHED")
                 {
-                    string winnerName = result.Message.Replace("¡Tenemos un Campeón: ", "").Replace("!", "").Trim();
+                    // Intentamos limpiar el mensaje para obtener el nombre
+                    string winnerName = "Campeón";
+                    if (!string.IsNullOrEmpty(result.Message))
+                    {
+                        // Lógica defensiva para limpiar el string
+                        winnerName = result.Message
+                           .Replace("¡Tenemos un Campeón:", "")
+                           .Replace("¡Mesa Final Terminada!", "")
+                           .Replace("Ganador:", "")
+                           .Trim(new char[] { ' ', '!', '.' });
+                    }
+
+                    // Si por alguna razón quedó vacío, buscamos al último jugador activo en la BD
+                    if (string.IsNullOrWhiteSpace(winnerName) || winnerName.Length < 2)
+                    {
+                        var regs = await _service.GetRegistrationsAsync(id);
+                        var active = regs.FirstOrDefault(r => r.Status == RegistrationStatus.Active);
+                        if (active != null) winnerName = active.PlayerName;
+                    }
+
                     extraData = new { winnerName };
+
+                    // OPTIMIZACIÓN: Estandarizamos el evento hacia el frontend para no tener lógicas duplicadas allá
+                    result.InstructionType = "TOURNAMENT_WINNER";
                 }
 
+                // Enviamos el evento al socket server
                 await NotifyNodeServer(id, "tournament-instruction", new
                 {
                     type = result.InstructionType,
@@ -188,6 +215,7 @@ namespace PokerGenys.API.Controllers
                     data = extraData
                 });
             }
+
             return Ok(result);
         }
 
