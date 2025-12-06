@@ -1,6 +1,7 @@
 ﻿using PokerGenys.Domain.Models;
 using PokerGenys.Domain.Models.Tournaments;
 using PokerGenys.Infrastructure.Repositories;
+using System.Reflection;
 
 namespace PokerGenys.Services
 {
@@ -548,7 +549,11 @@ namespace PokerGenys.Services
                         Success = true,
                         InstructionType = "FINAL_TABLE_FINISHED",
                         Message = "¡Mesa Final Terminda!",
-                        FromTable = finalTable.Id.ToString()
+                        FromTable = finalTable.Id.ToString(),
+                        Data = new
+                        {
+                            winnerName = activePlayers[0].PlayerName
+                        }
                     };
                 }
 
