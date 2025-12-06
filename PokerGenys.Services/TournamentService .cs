@@ -547,13 +547,9 @@ namespace PokerGenys.Services
                     return new RemoveResult
                     {
                         Success = true,
-                        InstructionType = "FINAL_TABLE_FINISHED",
+                        InstructionType = "TOURNAMENT_WINNER",
                         Message = "¡Mesa Final Terminda!",
                         FromTable = finalTable.Id.ToString(),
-                        Data = new
-                        {
-                            winnerName = activePlayers[0].PlayerName
-                        }
                     };
                 }
 
