@@ -68,7 +68,8 @@ namespace PokerGenys.Domain.Models.Tournaments
         Active,        // Mesa en juego
         Broken,        // Mesa "rompida" (cerrada para balancear)
         FinalTable,    // Mesa final (cambia la dinámica/luces)
-        Paused         // Juego detenido solo en esta mesa
+        Paused,         // Juego detenido solo en esta mesa
+        Finished
     }
 
     public enum TransactionType

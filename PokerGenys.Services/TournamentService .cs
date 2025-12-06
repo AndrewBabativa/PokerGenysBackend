@@ -539,6 +539,19 @@ namespace PokerGenys.Services
             {
                 // 1. Elegir la mesa destino (La mesa 1, o reutilizar una existente)
                 var finalTable = t.Tables.OrderBy(tb => tb.TableNumber).FirstOrDefault(tb => tb.Status != TournamentTableStatus.Broken);
+                if (activePlayers.Count == 1)
+                {
+                    finalTable.Name = "Mesa Final";
+                    finalTable.Status = TournamentTableStatus.Finished;
+                    return new RemoveResult
+                    {
+                        Success = true,
+                        InstructionType = "FINAL_TABLE_FINISHED",
+                        Message = "¡Mesa Final Terminda!",
+                        FromTable = finalTable.Id.ToString()
+                    };
+                }
+
                 if (finalTable == null) return new RemoveResult { Success = true };
 
                 finalTable.Name = "Mesa Final";
@@ -570,6 +583,7 @@ namespace PokerGenys.Services
                     FromTable = finalTable.Id.ToString()
                 };
             }
+
             return new RemoveResult { Success = true };
         }
 
