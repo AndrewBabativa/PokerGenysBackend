@@ -74,52 +74,65 @@ namespace PokerGenys.Services
             return await _repo.UpdateAsync(t);
         }
 
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<Guid, SemaphoreSlim> _locks = new();
+
         public async Task<RegistrationResult?> RegisterPlayerAsync(Guid id, string playerName, string paymentMethod, string? bank = null, string? reference = null)
         {
-            var t = await _repo.GetByIdAsync(id);
-            if (t == null) return null;
 
-            EnsureListsInitialized(t);
-            EnsureActiveTableExists(t);
+            var tournamentLock = _locks.GetOrAdd(id, _ => new SemaphoreSlim(1, 1));
+            await tournamentLock.WaitAsync();
 
-            var reg = new TournamentRegistration
+            try
             {
-                Id = Guid.NewGuid(),
-                TournamentId = t.Id,
-                WorkingDayId = t.WorkingDayId,
-                PlayerName = playerName,
-                Chips = t.StartingChips,
-                RegisteredAt = DateTime.UtcNow,
-                Status = RegistrationStatus.Active,
-                PaidAmount = t.BuyIn + t.Fee,
-                PaymentMethod = ParsePaymentMethod(paymentMethod),
-                RegistrationType = RegistrationType.Standard
-            };
+                var t = await _repo.GetByIdAsync(id);
+                if (t == null) return null;
 
-            var seatResult = AssignSmartSeat(t, reg);
+                EnsureListsInitialized(t);
+                EnsureActiveTableExists(t);
 
-            // Log Transaction
-            RecordInternalTransaction(t, reg.Id, TransactionType.BuyIn, t.BuyIn, reg.PaymentMethod, bank, reference, $"Buy-In: {reg.PlayerName}");
-            if (t.Fee > 0)
-                RecordInternalTransaction(t, null, TransactionType.HouseRake, t.Fee, reg.PaymentMethod, bank, reference, "Rake Buy-In");
-
-            t.PrizePool += t.BuyIn;
-            t.TotalEntries++;
-            t.ActivePlayers++;
-            t.Registrations.Add(reg);
-
-            await _repo.UpdateAsync(t);
-
-            return new RegistrationResult
-            {
-                Registration = reg,
-                NewStats = new TournamentStatsDto
+                var reg = new TournamentRegistration
                 {
-                    Entries = t.TotalEntries,
-                    Active = t.ActivePlayers,
-                    PrizePool = t.PrizePool
-                }
-            };
+                    Id = Guid.NewGuid(),
+                    TournamentId = t.Id,
+                    WorkingDayId = t.WorkingDayId,
+                    PlayerName = playerName,
+                    Chips = t.StartingChips,
+                    RegisteredAt = DateTime.UtcNow,
+                    Status = RegistrationStatus.Active,
+                    PaidAmount = t.BuyIn + t.Fee,
+                    PaymentMethod = ParsePaymentMethod(paymentMethod),
+                    RegistrationType = RegistrationType.Standard
+                };
+
+                var seatResult = AssignSmartSeat(t, reg);
+
+                // Log Transaction
+                RecordInternalTransaction(t, reg.Id, TransactionType.BuyIn, t.BuyIn, reg.PaymentMethod, bank, reference, $"Buy-In: {reg.PlayerName}");
+                if (t.Fee > 0)
+                    RecordInternalTransaction(t, null, TransactionType.HouseRake, t.Fee, reg.PaymentMethod, bank, reference, "Rake Buy-In");
+
+                t.PrizePool += t.BuyIn;
+                t.TotalEntries++;
+                t.ActivePlayers++;
+                t.Registrations.Add(reg);
+
+                await _repo.UpdateAsync(t);
+
+                return new RegistrationResult
+                {
+                    Registration = reg,
+                    NewStats = new TournamentStatsDto
+                    {
+                        Entries = t.TotalEntries,
+                        Active = t.ActivePlayers,
+                        PrizePool = t.PrizePool
+                    }
+                };
+            }
+            finally
+            {
+                tournamentLock.Release(); 
+            }
         }
 
         public async Task<RegistrationResult?> RebuyPlayerAsync(Guid tournamentId, Guid registrationId, string paymentMethod, string? bank = null, string? reference = null)

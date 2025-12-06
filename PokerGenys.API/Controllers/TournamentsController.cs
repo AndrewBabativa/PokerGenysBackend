@@ -21,33 +21,36 @@ namespace PokerGenys.API.Controllers
             _httpClientFactory = httpClientFactory;
         }
 
-        // --- WEBHOOK HELPER (OPTIMIZADO) ---
-        private async Task NotifyNodeServer(Guid tournamentId, string eventName, object payload)
+        private async Task NotifyNodeServerSafe(Guid tournamentId, string eventName, object payload)
         {
-            try
+            _ = Task.Run(async () =>
             {
-                var client = _httpClientFactory.CreateClient();
-                client.Timeout = TimeSpan.FromSeconds(5);
+                try
+                {
+                    var client = _httpClientFactory.CreateClient("NodeServer"); // Configurado en Startup
+                    var body = new { tournamentId, @event = eventName, data = payload };
+                    var content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
 
-                var body = new { tournamentId, @event = eventName, data = payload };
-
-                // Serialización camelCase para que el Frontend entienda los datos
-                var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = false };
-                var content = new StringContent(JsonSerializer.Serialize(body, jsonOptions), Encoding.UTF8, "application/json");
-
-                _ = client.PostAsync(NODE_SERVER_URL, content); // Fire & Forget
-            }
-            catch (Exception ex) { Console.WriteLine($"[Webhook Error] {ex.Message}"); }
+                    var response = await client.PostAsync("/api/webhook/emit", content);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        // Loguear error real
+                        Console.WriteLine($"[Webhook Fail] {response.StatusCode}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[Webhook Crash] {ex.Message}");
+                }
+            });
         }
 
         private async Task NotifyWithStats(Guid tournamentId, string action, object payload)
         {
-            // 1. Reutilizamos el método GetByIdAsync que ya está optimizado en el repo
             var t = await _service.GetByIdAsync(tournamentId);
 
             if (t != null)
             {
-                // 2. Extraemos los datos directamente del objeto
                 var stats = new
                 {
                     entries = t.TotalEntries,
@@ -55,29 +58,27 @@ namespace PokerGenys.API.Controllers
                     prizePool = t.PrizePool
                 };
 
-                await NotifyNodeServer(tournamentId, "player-action", new { action, payload, stats });
+                await NotifyNodeServerSafe(tournamentId, "player-action", new { action, payload, stats });
             }
         }
 
         // ============================================================
         // 1. CONTROL DE JUEGO (Start / Pause)
         // ============================================================
-
         [HttpPost("{id}/start")]
         public async Task<IActionResult> StartTournament(Guid id)
         {
             var t = await _service.StartTournamentAsync(id);
             if (t == null) return NotFound();
 
-            // CORRECCIÓN: Enviamos 'lastUpdatedAt' para que el frontend se sincronice
-            await NotifyNodeServer(id, "tournament-control", new
+            await NotifyNodeServerSafe(id, "tournament-control", new
             {
                 type = "start",
                 data = new
                 {
                     level = t.CurrentLevel,
-                    timeLeft = t.ClockState.SecondsRemaining, // Tiempo base
-                    lastUpdatedAt = t.ClockState.LastUpdatedAt, // IMPORTANTE: El ancla de tiempo
+                    timeLeft = t.ClockState.SecondsRemaining, 
+                    lastUpdatedAt = t.ClockState.LastUpdatedAt, 
                     status = "Running"
                 }
             });
@@ -91,7 +92,7 @@ namespace PokerGenys.API.Controllers
             var t = await _service.PauseTournamentAsync(id);
             if (t == null) return NotFound();
 
-            await NotifyNodeServer(id, "tournament-control", new
+            await NotifyNodeServerSafe(id, "tournament-control", new
             {
                 type = "pause",
                 data = new { level = t.CurrentLevel, timeLeft = t.ClockState?.SecondsRemaining ?? 0 }
@@ -165,7 +166,6 @@ namespace PokerGenys.API.Controllers
             var result = await _service.RemoveRegistrationAsync(id, regId);
             if (!result.Success) return NotFound();
 
-            // Notificar estadísticas básicas
             await NotifyWithStats(id, "remove", new { registrationId = regId });
 
             if (!string.IsNullOrEmpty(result.InstructionType))
@@ -178,37 +178,37 @@ namespace PokerGenys.API.Controllers
                     var registrations = await _service.GetRegistrationsAsync(id);
                     extraData = new { players = registrations };
                 }
-                // CASO 2: Ganador del Torneo (Manejamos ambos strings por seguridad)
+                // CASO 2: Ganador (Cualquiera de los dos eventos)
                 else if (result.InstructionType == "TOURNAMENT_WINNER" || result.InstructionType == "FINAL_TABLE_FINISHED")
                 {
-                    // Intentamos limpiar el mensaje para obtener el nombre
                     string winnerName = "Campeón";
+
+                    // A. Intentar leer del mensaje
                     if (!string.IsNullOrEmpty(result.Message))
                     {
-                        // Lógica defensiva para limpiar el string
                         winnerName = result.Message
-                           .Replace("¡Tenemos un Campeón:", "")
-                           .Replace("¡Mesa Final Terminada!", "")
-                           .Replace("Ganador:", "")
-                           .Trim(new char[] { ' ', '!', '.' });
+                            .Replace("¡Tenemos un Campeón:", "")
+                            .Replace("¡Mesa Final Terminada!", "")
+                            .Replace("¡Mesa Final Terminda!", "") // Fix typo
+                            .Replace("Ganador:", "")
+                            .Trim(new char[] { ' ', '!', '.' });
                     }
 
-                    // Si por alguna razón quedó vacío, buscamos al último jugador activo en la BD
+                    // B. Si falló, buscar en base de datos al último vivo o último eliminado
                     if (string.IsNullOrWhiteSpace(winnerName) || winnerName.Length < 2)
                     {
                         var regs = await _service.GetRegistrationsAsync(id);
-                        var active = regs.FirstOrDefault(r => r.Status == RegistrationStatus.Active);
+                        var active = regs.FirstOrDefault(r => r.Status == RegistrationStatus.Active)
+                                     ?? regs.OrderByDescending(r => r.EliminatedAt).FirstOrDefault();
+
                         if (active != null) winnerName = active.PlayerName;
                     }
 
                     extraData = new { winnerName };
-
-                    // OPTIMIZACIÓN: Estandarizamos el evento hacia el frontend para no tener lógicas duplicadas allá
                     result.InstructionType = "TOURNAMENT_WINNER";
                 }
 
-                // Enviamos el evento al socket server
-                await NotifyNodeServer(id, "tournament-instruction", new
+                await NotifyNodeServerSafe(id, "tournament-instruction", new
                 {
                     type = result.InstructionType,
                     message = result.Message,
@@ -225,7 +225,7 @@ namespace PokerGenys.API.Controllers
         {
             var reg = await _service.AssignSeatAsync(id, regId, req.TableId, req.SeatId);
             if (reg == null) return NotFound();
-            await NotifyNodeServer(id, "player-action", new { action = "move", payload = reg });
+            await NotifyNodeServerSafe(id, "player-action", new { action = "move", payload = reg });
             return Ok(reg);
         }
 
@@ -252,7 +252,7 @@ namespace PokerGenys.API.Controllers
         {
             var result = await _service.AddOnPlayerAsync(id, regId, req.PaymentMethod, req.Bank, req.Reference);
             if (result == null) return BadRequest("Add-on no disponible");
-            await NotifyNodeServer(id, "player-action", new { action = "addon", payload = result.Registration });
+            await NotifyNodeServerSafe(id, "player-action", new { action = "addon", payload = result.Registration });
             return Ok(result);
         }
 
