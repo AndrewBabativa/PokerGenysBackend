@@ -14,5 +14,7 @@ namespace PokerGenys.Domain.Models.Tournaments
         public int RegisteredCount { get; set; }
         public decimal PrizePool { get; set; }
         public string Blinds { get; set; }
+
+        public bool IsFinalTable { get; set; }
     }
 }

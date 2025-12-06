@@ -512,6 +512,8 @@ namespace PokerGenys.Services
                 await _repo.UpdateAsync(t);
             }
 
+            var IsFinalTable = t.ActivePlayers <= t.Seating.FinalTableSize ? true : false;
+
             return new TournamentState
             {
                 CurrentLevel = t.CurrentLevel,
@@ -519,7 +521,8 @@ namespace PokerGenys.Services
                 Status = t.Status,
                 RegisteredCount = t.TotalEntries,
                 PrizePool = t.PrizePool,
-                Blinds = GetBlindsInfo(t)
+                Blinds = GetBlindsInfo(t),
+                IsFinalTable = IsFinalTable
             };
         }
 
@@ -532,7 +535,7 @@ namespace PokerGenys.Services
 
             // CASO: MESA FINAL
             // Solo entramos si hay más de 1 mesa activa y llegamos al número de jugadores
-            if (activePlayers.Count <= ftSize && activeTables.Count > 1)
+            if (activePlayers.Count <= ftSize)
             {
                 // 1. Elegir la mesa destino (La mesa 1, o reutilizar una existente)
                 var finalTable = t.Tables.OrderBy(tb => tb.TableNumber).FirstOrDefault(tb => tb.Status != TournamentTableStatus.Broken);
