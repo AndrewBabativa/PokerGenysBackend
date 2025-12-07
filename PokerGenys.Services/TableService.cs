@@ -20,12 +20,36 @@ namespace PokerGenys.Services
             return _repo.CreateAsync(table);
         }
 
-        public async Task<TableInstance?> UpdateAsync(TableInstance table)
+        public async Task<TableInstance?> UpdateAsync(TableInstance incoming)
         {
-            var existing = await _repo.GetByIdAsync(table.Id);
+            var existing = await _repo.GetByIdAsync(incoming.Id);
+
             if (existing == null) return null;
-            await _repo.UpdateAsync(table);
-            return table;
+
+
+            if (incoming.Status != default)
+                existing.Status = incoming.Status;
+
+            if (incoming.ClosedAt.HasValue)
+                existing.ClosedAt = incoming.ClosedAt;
+
+
+            existing.TotalRake = incoming.TotalRake;
+            existing.CloseNotes = incoming.CloseNotes;
+
+            if (incoming.Metadata != null)
+            {
+                if (existing.Metadata == null) existing.Metadata = new Dictionary<string, object>();
+
+                foreach (var item in incoming.Metadata)
+                {
+                    existing.Metadata[item.Key] = item.Value;
+                }
+            }
+
+            await _repo.UpdateAsync(existing);
+
+            return existing;
         }
     }
 }
