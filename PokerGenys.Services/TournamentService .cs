@@ -526,7 +526,7 @@ namespace PokerGenys.Services
                 await _repo.UpdateAsync(t);
             }
 
-            var IsFinalTable = t.ActivePlayers <= t.Seating.FinalTableSize ? true : false;
+            var IsFinalTable = t.ActivePlayers <= t.Seating.FinalTableSize && (t.Levels.Find(l => l.LevelNumber == t.CurrentLevel).AllowRebuy == false) ? true : false;
 
             return new TournamentState
             {
