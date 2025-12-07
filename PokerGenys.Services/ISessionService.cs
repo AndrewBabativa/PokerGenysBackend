@@ -10,5 +10,7 @@ namespace PokerGenys.Services
         Task<List<Session>> GetAllAsync();
         Task<Session> CreateAsync(Session session);
         Task<Session?> UpdateAsync(Session session);
+        Task<TableReportDto> GetTableReportAsync(Guid tableId);
+
     }
 }

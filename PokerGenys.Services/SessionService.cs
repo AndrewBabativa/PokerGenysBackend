@@ -31,8 +31,8 @@ namespace PokerGenys.Services
                         SessionId = session.Id,
                         Type = TransactionType.BuyIn,
                         Amount = session.InitialBuyIn,
-                        PaymentStatus = PaymentStatus.Paid,
-                        PaymentMethod = PaymentMethod.Cash,
+                        PaymentStatus = session.Transactions[0].PaymentStatus,
+                        PaymentMethod = session.Transactions[0].PaymentMethod,
                         CreatedAt = DateTime.UtcNow,
                         Description = "Initial BuyIn (Auto-generated)"
                     });
@@ -51,6 +51,126 @@ namespace PokerGenys.Services
             if (existing == null) return null;
             await _repo.UpdateAsync(session);
             return session;
+        }
+
+        public async Task<TableReportDto> GetTableReportAsync(Guid tableId)
+        {
+            // 1. TRAER TODO (Historial completo de la mesa)
+            var sessions = await _repo.GetByTableIdAsync(tableId);
+
+            var report = new TableReportDto();
+
+            // Inicializamos contadores bancarios para que aparezcan en 0 si no hay movs
+            report.Treasury.BankBreakdown = new Dictionary<string, decimal>
+            {
+                { "Bancolombia", 0 }, { "Nequi", 0 }, { "Daviplata", 0 }, { "Other", 0 }
+            };
+
+            foreach (var session in sessions)
+            {
+                // A. Variables locales por jugador
+                decimal pBuyIn = 0;
+                decimal pRest = 0;
+                decimal pCashOut = session.CashOut; // Valor base final
+                bool pHasDebt = false;
+
+                // B. Calcular Tiempo Jugado
+                var endTime = session.EndTime ?? DateTime.UtcNow;
+                var timeSpan = endTime - session.StartTime;
+                string formattedDuration = $"{(int)timeSpan.TotalHours}h {timeSpan.Minutes}m";
+
+                if (session.Transactions != null)
+                {
+                    foreach (var tx in session.Transactions)
+                    {
+                        // ==========================================
+                        // FASE 1: VOLUMEN OPERATIVO (¿Qué pasó en la mesa?)
+                        // ==========================================
+                        switch (tx.Type)
+                        {
+                            case TransactionType.BuyIn:
+                            case TransactionType.ReBuy:
+                                report.TotalBuyIns += tx.Amount;
+                                pBuyIn += tx.Amount;
+                                break;
+
+                            case TransactionType.Sale:
+                                report.TotalRestaurantSales += tx.Amount;
+                                pRest += tx.Amount;
+                                break;
+
+                            case TransactionType.CashOut:
+                                report.TotalCashOuts += tx.Amount;
+                                break;
+                        }
+
+                        // ==========================================
+                        // FASE 2: TESORERÍA (¿Dónde está la plata?)
+                        // ==========================================
+
+                        // CASO A: DEUDA PENDIENTE (Fiado)
+                        if (tx.PaymentStatus == PaymentStatus.Pending)
+                        {
+                            report.Treasury.TotalPendingDebt += tx.Amount;
+                            pHasDebt = true;
+                        }
+                        // CASO B: PAGADO (Entró dinero o cortesía)
+                        else if (tx.PaymentStatus == PaymentStatus.Paid)
+                        {
+                            // IMPORTANTE: Contamos transacciones normales Y pagos de deuda
+                            // (Un DebtPayment trae dinero fresco a la caja)
+                            if (tx.Type != TransactionType.CashOut) // CashOut es salida, no entrada
+                            {
+                                switch (tx.PaymentMethod)
+                                {
+                                    case PaymentMethod.Cash:
+                                        report.Treasury.TotalCashReceived += tx.Amount;
+                                        break;
+
+                                    case PaymentMethod.Courtesy:
+                                        report.Treasury.TotalCourtesies += tx.Amount;
+                                        break;
+
+                                    case PaymentMethod.Saldofavor:
+                                        report.Treasury.TotalInternalBalanceUsed += tx.Amount;
+                                        break;
+
+                                    case PaymentMethod.Transfer:
+                                        report.Treasury.TotalTransfersReceived += tx.Amount;
+
+                                        // 🏦 DESGLOSE BANCARIO AUTOMÁTICO
+                                        string bankKey = tx.BankMethod.HasValue
+                                            ? tx.BankMethod.Value.ToString()
+                                            : "Other";
+
+                                        if (!report.Treasury.BankBreakdown.ContainsKey(bankKey))
+                                            report.Treasury.BankBreakdown[bankKey] = 0;
+
+                                        report.Treasury.BankBreakdown[bankKey] += tx.Amount;
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // C. Agregar Resumen del Jugador
+                report.Players.Add(new PlayerReportDto
+                {
+                    PlayerId = session.PlayerId,
+                    // TODO: Conectar con User Service para nombre real
+                    PlayerName = "Jugador " + session.PlayerId.ToString().Substring(0, 4),
+                    Duration = formattedDuration,
+                    BuyIn = pBuyIn,
+                    Restaurant = pRest,
+                    CashOut = pCashOut,
+                    // Fórmula: Lo que se llevó - (Lo que invirtió en juego + lo que comió)
+                    NetResult = pCashOut - (pBuyIn + pRest),
+                    HasPendingDebt = pHasDebt
+                });
+            }
+
+            return report;
         }
     }
 }

@@ -44,5 +44,17 @@ namespace PokerGenys.API.Controllers
 
             return Ok(updated);
         }
+
+        [HttpGet("report/{tableId}")]
+        public async Task<IActionResult> GetTableReport(Guid tableId)
+        {
+            if (tableId == Guid.Empty)
+                return BadRequest("El ID de la mesa no es válido.");
+
+            // Llama al servicio "explotador de datos" que creamos
+            var report = await _service.GetTableReportAsync(tableId);
+
+            return Ok(report);
+        }
     }
 }

@@ -30,5 +30,14 @@ namespace PokerGenys.Infrastructure.Repositories
 
         public async Task UpdateAsync(Session session) =>
             await _context.Sessions.ReplaceOneAsync(s => s.Id == session.Id, session);
+
+        public async Task<List<Session>> GetByTableIdAsync(Guid tableId)
+        {
+            // Usamos _context.Sessions en lugar de _collection
+            return await _context.Sessions
+                .Find(s => s.TableId == tableId) // Filtro Lambda directo (más limpio)
+                .SortBy(s => s.StartTime)        // Ordenamos por hora de inicio
+                .ToListAsync();
+        }
     }
 }
