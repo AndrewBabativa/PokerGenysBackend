@@ -1,4 +1,5 @@
 ﻿// Services/TournamentClockWorker.cs
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using PokerGenys.Domain.Models; // Asegúrate de tener los using correctos
@@ -78,5 +79,48 @@ public class TournamentClockWorker : BackgroundService
                 }
             }
         }
+    }
+
+    // En TournamentsController.cs
+
+    [HttpPost("{id}/finish")]
+    public async Task<IActionResult> FinishTournament(Guid id)
+    {
+        // 1. Obtener torneo
+        var t = await _service.GetByIdAsync(id);
+        if (t == null) return NotFound();
+
+        // 2. Aplicar lógica de cierre (Congelar estado)
+        t.Status = TournamentStatus.Finished;
+        t.EndTime = DateTime.UtcNow;
+
+        // Detener reloj forzosamente
+        if (t.ClockState != null)
+        {
+            t.ClockState.IsPaused = true;
+            t.ClockState.SecondsRemaining = 0;
+            t.ClockState.LastUpdatedAt = DateTime.UtcNow;
+        }
+
+        // 3. Cerrar todas las mesas activas
+        if (t.Tables != null)
+        {
+            foreach (var table in t.Tables)
+            {
+                table.Status = TournamentTableStatus.Finished;
+            }
+        }
+
+        // 4. Guardar cambios
+        await _service.UpdateAsync(t);
+
+        // 5. Notificar a las pantallas (TV) para que muestren al ganador si hay
+        await _notifier.QueueNotificationAsync(id, "tournament-instruction", new
+        {
+            type = "TOURNAMENT_FINISHED",
+            message = "El torneo ha finalizado."
+        });
+
+        return Ok(t);
     }
 }
