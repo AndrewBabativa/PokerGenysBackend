@@ -29,8 +29,14 @@ namespace PokerGenys.Services
         // --- MOVIMIENTOS TRANSACCIONALES (Optimizados con Banco/Ref) ---
 
         // 1. Registro (Buy-In)
-        Task<RegistrationResult?> RegisterPlayerAsync(Guid id, string playerName, string paymentMethod, string? bank = null, string? reference = null);
-
+        Task<RegistrationResult?> RegisterPlayerAsync(
+                    Guid tournamentId,
+                    string playerName,
+                    string paymentMethod,
+                    string? bank = null,
+                    string? reference = null,
+                    Guid? existingPlayerId = null // <--- AGREGAR ESTO
+                );
         // 2. Recompra (Rebuy)
         Task<RegistrationResult?> RebuyPlayerAsync(Guid tournamentId, Guid registrationId, string paymentMethod, string? bank = null, string? reference = null);
 

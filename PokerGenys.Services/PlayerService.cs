@@ -10,7 +10,6 @@ namespace PokerGenys.Services
     public class PlayerService : IPlayerService
     {
         private readonly IPlayerRepository _repo;
-        // Podrías inyectar IWaitlistService o ISessionService si necesitas validar dependencias al borrar
 
         public PlayerService(IPlayerRepository repo)
         {
@@ -64,5 +63,7 @@ namespace PokerGenys.Services
             }
             await _repo.DeleteAsync(id);
         }
+
+
     }
 }

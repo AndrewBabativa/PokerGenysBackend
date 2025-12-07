@@ -8,8 +8,9 @@ namespace PokerGenys.Domain.Models.Tournaments
 {
     public class RegisterRequest
     {
-        public string PlayerName { get; set; } = "";
-        public string PaymentMethod { get; set; } = "Cash";
+        public Guid? PlayerId { get; set; } 
+        public string PlayerName { get; set; }
+        public string PaymentMethod { get; set; }
         public string? Bank { get; set; }
         public string? Reference { get; set; }
     }

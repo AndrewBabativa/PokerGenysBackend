@@ -114,17 +114,26 @@ namespace PokerGenys.API.Controllers
         [HttpPost("{id}/register")]
         public async Task<IActionResult> RegisterPlayer(Guid id, [FromBody] RegisterRequest req)
         {
-            var result = await _service.RegisterPlayerAsync(id, req.PlayerName, req.PaymentMethod, req.Bank, req.Reference);
-            if (result == null) return BadRequest("No se pudo registrar.");
-
-            await _notifier.QueueNotificationAsync(id, "player-action", new
+            try
             {
-                action = "add",
-                payload = result.Registration,
-                stats = result.NewStats 
-            });
+                var result = await _service.RegisterPlayerAsync(
+                    id,
+                    req.PlayerName,
+                    req.PaymentMethod,
+                    req.Bank,
+                    req.Reference,
+                    req.PlayerId // <--- Pasamos el ID si existe
+                );
 
-            return Ok(result);
+                if (result == null) return BadRequest("No se pudo registrar (verifique reglas de torneo).");
+
+                // ... Notificación socket ...
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         // ... imports

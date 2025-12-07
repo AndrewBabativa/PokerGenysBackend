@@ -8,10 +8,12 @@ namespace PokerGenys.Services
     public class TournamentService : ITournamentService
     {
         private readonly ITournamentRepository _repo;
+        private readonly IPlayerRepository _playerRepo;
 
-        public TournamentService(ITournamentRepository repo)
+        public TournamentService(ITournamentRepository repo, IPlayerRepository playerRepo)
         {
             _repo = repo;
+            _playerRepo = playerRepo;
         }
 
         // =============================================================
@@ -666,5 +668,105 @@ namespace PokerGenys.Services
             return l != null ? $"{l.SmallBlind}/{l.BigBlind}" : "-/-";
         }
 
+        public async Task<RegistrationResult?> RegisterPlayerAsync(
+             Guid tournamentId,
+             string playerName,
+             string paymentMethod,
+             string? bank = null,
+             string? reference = null,
+             Guid? existingPlayerId = null)
+        {
+            var tournamentLock = _locks.GetOrAdd(tournamentId, _ => new SemaphoreSlim(1, 1));
+            await tournamentLock.WaitAsync();
+
+            try
+            {
+                var t = await _repo.GetByIdAsync(tournamentId);
+                if (t == null) return null;
+
+                EnsureListsInitialized(t);
+
+                // --- LÓGICA DE CREACIÓN AUTOMÁTICA DE JUGADOR ---
+                Guid finalPlayerId;
+                string finalPlayerName = playerName;
+
+                if (existingPlayerId.HasValue)
+                {
+                    finalPlayerId = existingPlayerId.Value;
+                }
+                else
+                {
+                    var newPlayer = new Player
+                    {
+                        Id = Guid.NewGuid(),
+                        FirstName = playerName,
+                        Type = PlayerType.Guest, // Asegúrate de tener este Enum en PlayerType
+                        Status = PlayerStatus.Active,
+                        CreatedAt = DateTime.UtcNow,
+                        InternalNotes = $"Creado autom. desde Torneo {t.Name}"
+                    };
+
+                    await _playerRepo.CreateAsync(newPlayer);
+                    finalPlayerId = newPlayer.Id;
+                    finalPlayerName = newPlayer.FirstName;
+                }
+
+                // CORRECCIÓN CS0019: Convertimos el Guid a String para comparar
+                if (t.Registrations.Any(r => r.PlayerId == finalPlayerId.ToString()))
+                {
+                    throw new Exception("Este jugador ya está registrado en el torneo.");
+                }
+
+                var reg = new TournamentRegistration
+                {
+                    Id = Guid.NewGuid(),
+                    TournamentId = t.Id,
+                    WorkingDayId = t.WorkingDayId,
+
+                    // CORRECCIÓN CS0029: Convertimos Guid a String al asignar
+                    PlayerId = finalPlayerId.ToString(),
+                    PlayerName = finalPlayerName,
+
+                    Chips = t.StartingChips,
+                    RegisteredAt = DateTime.UtcNow,
+                    Status = RegistrationStatus.Active,
+                    PaidAmount = t.BuyIn + t.Fee,
+                    PaymentMethod = ParsePaymentMethod(paymentMethod),
+                    RegistrationType = RegistrationType.Standard
+                };
+
+                var seatResult = AssignSmartSeat(t, reg);
+
+                // CORRECCIÓN CS1061: Usamos 'Value' de forma segura o un valor por defecto
+                var methodEnum = reg.PaymentMethod;
+
+                RecordInternalTransaction(t, Guid.Parse(reg.PlayerId), TransactionType.BuyIn, t.BuyIn, methodEnum, bank, reference, $"Buy-In: {reg.PlayerName}");
+
+                if (t.Fee > 0)
+                    RecordInternalTransaction(t, null, TransactionType.HouseRake, t.Fee, methodEnum, bank, reference, "Rake Buy-In");
+
+                t.PrizePool += t.BuyIn;
+                t.TotalEntries++;
+                t.ActivePlayers++;
+                t.Registrations.Add(reg);
+
+                await _repo.UpdateAsync(t);
+
+                return new RegistrationResult
+                {
+                    Registration = reg,
+                    NewStats = new TournamentStatsDto
+                    {
+                        Entries = t.TotalEntries,
+                        Active = t.ActivePlayers,
+                        PrizePool = t.PrizePool
+                    }
+                };
+            }
+            finally
+            {
+                tournamentLock.Release();
+            }
+        }
     }
 }

@@ -20,7 +20,8 @@ namespace PokerGenys.Domain.Models
         Standard,
         Regular,    // Viene todos los días (Grinder)
         Whale,      // Gasta mucho (Recreacional con dinero)
-        Nit         // Juega pocas manos (Conservador)
+        Nit,         // Juega pocas manos (Conservador)
+        Guest
     }
 
     public class Player
