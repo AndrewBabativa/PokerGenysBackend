@@ -12,5 +12,6 @@ namespace PokerGenys.Infrastructure.Repositories
         Task<WorkingDay?> GetByIdAsync(Guid id);
         Task<WorkingDay> CreateAsync(WorkingDay day);
         Task UpdateAsync(WorkingDay day);
+        Task<WorkingDay?> GetByDateAsync(DateTime date);
     }
 }

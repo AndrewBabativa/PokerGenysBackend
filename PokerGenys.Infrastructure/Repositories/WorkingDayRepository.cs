@@ -28,5 +28,16 @@ namespace PokerGenys.Infrastructure.Repositories
 
         public async Task UpdateAsync(WorkingDay day) =>
             await _context.WorkingDays.ReplaceOneAsync(d => d.Id == day.Id, day);
+
+        public async Task<WorkingDay?> GetByDateAsync(DateTime date)
+        {
+            var start = date.Date; // 2025-12-07 00:00:00
+            var end = start.AddDays(1); // 2025-12-08 00:00:00
+
+            // Asumiendo que tu modelo WorkingDay tiene un campo 'Date' o 'CreatedAt'
+            return await _context.WorkingDays
+                .Find(w => w.CreatedAt >= start && w.ClosedAt < end)
+                .FirstOrDefaultAsync();
+        }
     }
 }

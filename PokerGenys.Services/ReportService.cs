@@ -11,11 +11,16 @@ namespace PokerGenys.Services
     {
         private readonly ISessionRepository _sessionRepo;
         private readonly ITournamentRepository _tournamentRepo;
+        private readonly IWorkingDayRepository _workingDayRepo;
 
-        public ReportService(ISessionRepository sessionRepo, ITournamentRepository tournamentRepo)
+        public ReportService(
+        ISessionRepository sessionRepo,
+        ITournamentRepository tournamentRepo,
+        IWorkingDayRepository workingDayRepo) // <--- Inyección
         {
             _sessionRepo = sessionRepo;
             _tournamentRepo = tournamentRepo;
+            _workingDayRepo = workingDayRepo;
         }
 
         public async Task<DailyReportDto> GetDailyReportAsync(Guid workingDayId)
@@ -175,6 +180,18 @@ namespace PokerGenys.Services
                     treasury.BankBreakdown[key] += amount;
                     break;
             }
+        }
+
+        public async Task<DailyReportDto?> GetDailyReportByDateAsync(DateTime date)
+        {
+            // 1. Buscamos el ID de la jornada usando la fecha
+            var workingDay = await _workingDayRepo.GetByDateAsync(date);
+
+            if (workingDay == null)
+                return null; // No se trabajó ese día
+
+            // 2. Reutilizamos la lógica maestra que ya creamos
+            return await GetDailyReportAsync(workingDay.Id);
         }
     }
 }

@@ -13,15 +13,24 @@ namespace PokerGenys.API.Controllers
         {
             _service = service;
         }
-
         [HttpGet("daily")]
-        public async Task<IActionResult> GetDailyReport([FromQuery] Guid date)
+        public async Task<IActionResult> GetDailyReport([FromQuery] DateTime date) // ✅ Acepta DateTime
         {
+            try
+            {
+                var report = await _service.GetDailyReportByDateAsync(date);
 
-            if (date == Guid.Empty) return BadRequest("WorkingDayId es requerido");
+                if (report == null)
+                    return NotFound(new { message = "No se encontró una jornada de trabajo para esta fecha." });
 
-            var report = await _service.GetDailyReportAsync(date);
-            return Ok(report);
+                return Ok(report);
+            }
+            catch (Exception ex)
+            {
+                // Loguear el error real para verlo en la consola de Render
+                Console.WriteLine($"Error generando reporte: {ex.Message}");
+                return StatusCode(500, "Error interno generando el reporte.");
+            }
         }
     }
 }
