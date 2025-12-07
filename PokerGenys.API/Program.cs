@@ -31,7 +31,8 @@ builder.Services.AddHttpClient("NodeServer", client =>
     client.BaseAddress = new Uri("https://pokersocketserver.onrender.com");
 });
 
-
+// Program.cs
+builder.Services.AddScoped<IWorkingDayRepository, WorkingDayRepository>();
 builder.Services.AddSingleton<SocketNotificationService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<SocketNotificationService>());
 builder.Services.AddHostedService<TournamentClockWorker>();
