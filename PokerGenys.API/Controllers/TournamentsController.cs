@@ -282,5 +282,43 @@ namespace PokerGenys.API.Controllers
 
             return Ok(t);
         }
+
+        [HttpPost("{id}/registrations/{regId}/payout")] // <--- RUTA QUE BUSCA EL FRONTEND
+        public async Task<IActionResult> RegisterPayout(Guid id, Guid regId, [FromBody] PayoutRequest req)
+        {
+            // Lógica para registrar el pago del premio
+            // Esto es similar a una venta, pero es un egreso (Type = PrizePayout)
+
+            // 1. Validar torneo y jugador
+            var t = await _service.GetByIdAsync(id);
+            if (t == null) return NotFound();
+
+            // 2. Registrar Transacción de Egreso
+            var tx = new TournamentTransaction
+            {
+                Id = Guid.NewGuid(),
+                TournamentId = t.Id,
+                WorkingDayId = t.WorkingDayId,
+                PlayerId = regId,
+                Type = TransactionType.PrizePayout, // Importante: Tipo Premio
+                Amount = req.Amount,
+                PaymentMethod = Enum.Parse<PaymentMethod>(req.Method), // O usar string seguro
+                Description = req.Notes ?? "Pago de Premio",
+                Timestamp = DateTime.UtcNow
+            };
+
+            t.Transactions.Add(tx);
+
+            // 3. Actualizar Jugador (opcional, para saber cuánto ganó)
+            var player = t.Registrations.FirstOrDefault(r => r.Id == regId);
+            if (player != null)
+            {
+                player.PayoutAmount = req.Amount;
+            }
+
+            await _service.UpdateAsync(t);
+
+            return Ok(tx);
+        }
     }
 }
