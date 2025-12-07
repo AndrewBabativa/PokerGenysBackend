@@ -2,6 +2,7 @@
 using PokerGenys.Infrastructure.Repositories;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace PokerGenys.Services
@@ -23,33 +24,56 @@ namespace PokerGenys.Services
         public async Task<TableInstance?> UpdateAsync(TableInstance incoming)
         {
             var existing = await _repo.GetByIdAsync(incoming.Id);
-
             if (existing == null) return null;
 
-
-            if (incoming.Status != default)
-                existing.Status = incoming.Status;
-
-            if (incoming.ClosedAt.HasValue)
-                existing.ClosedAt = incoming.ClosedAt;
-
+            // Actualización de campos básicos
+            if (incoming.Status != default) existing.Status = incoming.Status;
+            if (incoming.ClosedAt.HasValue) existing.ClosedAt = incoming.ClosedAt;
 
             existing.TotalRake = incoming.TotalRake;
             existing.CloseNotes = incoming.CloseNotes;
 
+            // 🔥 CORRECCIÓN CRÍTICA PARA METADATA 🔥
             if (incoming.Metadata != null)
             {
                 if (existing.Metadata == null) existing.Metadata = new Dictionary<string, object>();
 
                 foreach (var item in incoming.Metadata)
                 {
-                    existing.Metadata[item.Key] = item.Value;
+                    // Aquí está la magia: Convertimos el JsonElement a un valor real
+                    existing.Metadata[item.Key] = UnwrapJsonElement(item.Value);
                 }
             }
 
             await _repo.UpdateAsync(existing);
-
             return existing;
+        }
+
+        // 👇 AGREGA ESTE MÉTODO PRIVADO AL FINAL DE TU CLASE
+        private object UnwrapJsonElement(object value)
+        {
+            if (value is JsonElement element)
+            {
+                switch (element.ValueKind)
+                {
+                    case JsonValueKind.String:
+                        return element.GetString();
+                    case JsonValueKind.Number:
+                        if (element.TryGetInt32(out int i)) return i;
+                        if (element.TryGetInt64(out long l)) return l;
+                        return element.GetDouble();
+                    case JsonValueKind.True:
+                        return true;
+                    case JsonValueKind.False:
+                        return false;
+                    case JsonValueKind.Null:
+                        return null;
+                    // Agrega más casos si envías arrays u objetos complejos
+                    default:
+                        return element.ToString();
+                }
+            }
+            return value; // Si no es JsonElement, lo devolvemos tal cual
         }
     }
 }
