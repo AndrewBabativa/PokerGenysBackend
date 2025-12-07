@@ -37,9 +37,7 @@ namespace PokerGenys.API.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] TableInstance table)
         {
-            if (id != table.Id)
-                return BadRequest("El ID de la URL no coincide con el del cuerpo.");
-
+            table.Id = id;
             var updated = await _service.UpdateAsync(table);
 
             if (updated == null) return NotFound();
