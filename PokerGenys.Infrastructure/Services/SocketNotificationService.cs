@@ -3,6 +3,7 @@ using System.Threading.Channels;
 using System.Text.Json;
 using System.Text;
 using Microsoft.Extensions.Hosting;
+using System.Net.Http;
 
 public class SocketNotificationService : BackgroundService
 {

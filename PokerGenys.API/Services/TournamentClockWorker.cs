@@ -1,5 +1,6 @@
 ﻿// Services/TournamentClockWorker.cs
 using PokerGenys.Domain.Models;
+using PokerGenys.Domain.Models.Tournaments;
 using PokerGenys.Infrastructure.Repositories;
 
 public class TournamentClockWorker : BackgroundService

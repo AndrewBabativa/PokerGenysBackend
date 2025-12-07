@@ -26,7 +26,15 @@ BsonSerializer.RegisterSerializer(new GuidSerializer(MongoDB.Bson.GuidRepresenta
 // ==========================================
 // 2. INYECCIÓN DE DEPENDENCIAS (DI)
 // ==========================================
+builder.Services.AddHttpClient("NodeServer", client =>
+{
+    client.BaseAddress = new Uri("https://pokersocketserver.onrender.com");
+});
 
+
+builder.Services.AddSingleton<SocketNotificationService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<SocketNotificationService>());
+builder.Services.AddHostedService<TournamentClockWorker>();
 // Contexto de Base de Datos (Singleton es seguro para MongoClient)
 builder.Services.AddSingleton(new MongoContext(mongoSettings));
 builder.Services.AddHttpClient();

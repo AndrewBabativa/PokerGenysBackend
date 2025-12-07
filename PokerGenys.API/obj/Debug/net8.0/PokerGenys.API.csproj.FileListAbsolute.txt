@@ -56,3 +56,12 @@ C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\ne
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\net8.0\ref\PokerGenys.API.dll
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\net8.0\PokerGenys.API.sourcelink.json
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.dll
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\bin\Debug\net8.0\Microsoft.Extensions.Diagnostics.dll
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\bin\Debug\net8.0\Microsoft.Extensions.Diagnostics.Abstractions.dll
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\bin\Debug\net8.0\Microsoft.Extensions.FileProviders.Abstractions.dll
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\bin\Debug\net8.0\Microsoft.Extensions.Hosting.Abstractions.dll
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\bin\Debug\net8.0\Microsoft.Extensions.Http.dll
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\bin\Debug\net8.0\Microsoft.Extensions.Logging.dll
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\bin\Debug\net8.0\Microsoft.Extensions.Logging.Abstractions.dll
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\bin\Debug\net8.0\System.Diagnostics.DiagnosticSource.dll
