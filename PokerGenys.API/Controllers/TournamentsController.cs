@@ -197,9 +197,39 @@ namespace PokerGenys.API.Controllers
         [HttpPost("{id}/sales")]
         public async Task<IActionResult> RecordSale(Guid id, [FromBody] ServiceSaleRequest req)
         {
-            var tx = await _service.RecordServiceSaleAsync(id, req.PlayerId, req.Amount, req.Description, req.Items, req.PaymentMethod, req.Bank, req.Reference);
-            if (tx == null) return NotFound();
-            return Ok(tx);
+            try
+            {
+                // Validación de seguridad
+                if (req.Amount <= 0) return BadRequest("El monto debe ser mayor a 0");
+
+                // CONVERSIÓN CLAVE: De <string, string> a <string, object>
+                // Esto "limpia" los datos para que Mongo los acepte sin problemas
+                var safeItems = req.Items?.ToDictionary(
+                    k => k.Key,
+                    v => (object)v.Value
+                ) ?? new Dictionary<string, object>();
+
+                var tx = await _service.RecordServiceSaleAsync(
+                    id,
+                    req.PlayerId,
+                    req.Amount,
+                    req.Description,
+                    safeItems,
+                    req.PaymentMethod,
+                    req.Bank,
+                    req.Reference
+                );
+
+                if (tx == null) return NotFound("Torneo no encontrado");
+
+                return Ok(tx);
+            }
+            catch (Exception ex)
+            {
+                // Log para ver el error real en la consola de Render
+                Console.WriteLine($"[ERROR VENTA] {ex.Message} \n {ex.StackTrace}");
+                return StatusCode(500, new { error = ex.Message });
+            }
         }
 
         [HttpPost("{id}/transactions")]

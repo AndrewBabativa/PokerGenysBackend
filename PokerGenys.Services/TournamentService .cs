@@ -245,11 +245,24 @@ namespace PokerGenys.Services
         // 4. VENTAS Y TRANSACCIONES
         // =============================================================
 
-        public async Task<TournamentTransaction?> RecordServiceSaleAsync(Guid tournamentId, Guid? playerId, decimal amount, string description, Dictionary<string, object> items, string paymentMethod, string? bank = null, string? reference = null)
+        public async Task<TournamentTransaction?> RecordServiceSaleAsync(
+            Guid tournamentId,
+            Guid? playerId,
+            decimal amount,
+            string description,
+            Dictionary<string, object> items,
+            string paymentMethod,
+            string? bank = null,
+            string? reference = null)
         {
             var t = await _repo.GetByIdAsync(tournamentId);
             if (t == null) return null;
+
             EnsureListsInitialized(t);
+
+            // Parseo seguro de Enums
+            var pMethod = ParsePaymentMethod(paymentMethod);
+            var pProvider = ParsePaymentProvider(bank);
 
             var tx = new TournamentTransaction
             {
@@ -259,16 +272,28 @@ namespace PokerGenys.Services
                 PlayerId = playerId,
                 Type = TransactionType.ServiceSale,
                 Amount = amount,
-                PaymentMethod = ParsePaymentMethod(paymentMethod),
-                Bank = ParsePaymentProvider(bank),
+                PaymentMethod = pMethod,
+                Bank = pProvider,
                 PaymentReference = reference,
                 Description = description,
-                Metadata = items,
+                Metadata = items, // Mongo ahora recibirá un Dictionary<string, object> limpio (strings dentro)
                 Timestamp = DateTime.UtcNow
             };
 
+            // Si es un pago con 'Balance' (Deuda/Crédito), verificamos si el jugador existe
+            if (playerId.HasValue && pMethod == PaymentMethod.Balance)
+            {
+                var player = t.Registrations.FirstOrDefault(r => r.Id == playerId.Value);
+                if (player != null)
+                {
+                    // Opcional: Aquí podrías sumar a una propiedad "Deuda" en el jugador si la tuvieras
+                    // player.TotalDebt += amount;
+                }
+            }
+
             t.Transactions.Add(tx);
-            await _repo.UpdateAsync(t);
+            await _repo.UpdateAsync(t); // Usamos UpdateAsync completo para guardar la transacción en el array
+
             return tx;
         }
 
