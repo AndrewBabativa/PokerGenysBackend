@@ -39,5 +39,22 @@ namespace PokerGenys.Infrastructure.Repositories
             var result = await _context.Tournaments.DeleteOneAsync(t => t.Id == id);
             return result.DeletedCount > 0;
         }
+
+        public async Task<List<Tournament>> GetRunningTournamentsAsync()
+        {
+            return await _context.Tournaments
+                .Find(t => t.Status == TournamentStatus.Running && t.ClockState.IsPaused == false)
+                .ToListAsync();
+        }
+
+        public async Task UpdateClockStateAsync(Guid tournamentId, ClockState clockState, int currentLevel, TournamentStatus status)
+        {
+            var updateDef = Builders<Tournament>.Update
+                .Set(t => t.ClockState, clockState)
+                .Set(t => t.CurrentLevel, currentLevel)
+                .Set(t => t.Status, status);
+
+            await _context.Tournaments.UpdateOneAsync(t => t.Id == tournamentId, updateDef);
+        }
     }
 }

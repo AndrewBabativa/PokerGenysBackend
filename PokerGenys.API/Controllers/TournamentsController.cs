@@ -24,47 +24,6 @@ namespace PokerGenys.API.Controllers
             _notifier = notifier;
         }
 
-        private async Task NotifyNodeServerSafe(Guid tournamentId, string eventName, object payload)
-        {
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    var client = _httpClientFactory.CreateClient("NodeServer"); // Configurado en Startup
-                    var body = new { tournamentId, @event = eventName, data = payload };
-                    var content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
-
-                    var response = await client.PostAsync("/api/webhook/emit", content);
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        // Loguear error real
-                        Console.WriteLine($"[Webhook Fail] {response.StatusCode}");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[Webhook Crash] {ex.Message}");
-                }
-            });
-        }
-
-        private async Task NotifyWithStats(Guid tournamentId, string action, object payload)
-        {
-            var t = await _service.GetByIdAsync(tournamentId);
-
-            if (t != null)
-            {
-                var stats = new
-                {
-                    entries = t.TotalEntries,
-                    active = t.ActivePlayers,
-                    prizePool = t.PrizePool
-                };
-
-                await NotifyNodeServerSafe(tournamentId, "player-action", new { action, payload, stats });
-            }
-        }
-
         // ============================================================
         // 1. CONTROL DE JUEGO (Start / Pause)
         // ============================================================
@@ -203,7 +162,7 @@ namespace PokerGenys.API.Controllers
         {
             var reg = await _service.AssignSeatAsync(id, regId, req.TableId, req.SeatId);
             if (reg == null) return NotFound();
-            await NotifyNodeServerSafe(id, "player-action", new { action = "move", payload = reg });
+            await _notifier.QueueNotificationAsync(id, "player-action", new { action = "move", payload = reg });
             return Ok(reg);
         }
 
@@ -221,7 +180,7 @@ namespace PokerGenys.API.Controllers
         {
             var result = await _service.RebuyPlayerAsync(id, regId, req.PaymentMethod, req.Bank, req.Reference);
             if (result == null) return BadRequest("Rebuy no permitido");
-            await NotifyWithStats(id, "rebuy", result.Registration);
+            await _notifier.QueueNotificationAsync(id, "rebuy", result.Registration);
             return Ok(result);
         }
 
@@ -230,7 +189,7 @@ namespace PokerGenys.API.Controllers
         {
             var result = await _service.AddOnPlayerAsync(id, regId, req.PaymentMethod, req.Bank, req.Reference);
             if (result == null) return BadRequest("Add-on no disponible");
-            await NotifyNodeServerSafe(id, "player-action", new { action = "addon", payload = result.Registration });
+            await _notifier.QueueNotificationAsync(id, "player-action", new { action = "addon", payload = result.Registration });
             return Ok(result);
         }
 

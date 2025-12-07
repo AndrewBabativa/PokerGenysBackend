@@ -1,5 +1,7 @@
 ﻿// Services/TournamentClockWorker.cs
-using PokerGenys.Domain.Models;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using PokerGenys.Domain.Models; // Asegúrate de tener los using correctos
 using PokerGenys.Domain.Models.Tournaments;
 using PokerGenys.Infrastructure.Repositories;
 
@@ -18,17 +20,14 @@ public class TournamentClockWorker : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            // Ejecutar cada 1 segundo
             await Task.Delay(1000, stoppingToken);
 
             using (var scope = _serviceProvider.CreateScope())
             {
                 var repo = scope.ServiceProvider.GetRequiredService<ITournamentRepository>();
 
-                // Obtener SOLO torneos corriendo (Optimización de consulta necesaria en Repo)
-                var activeTournaments = (await repo.GetAllAsync())
-                                        .Where(t => t.Status == TournamentStatus.Running && !t.ClockState.IsPaused)
-                                        .ToList();
+                // 1. Usar la consulta optimizada (sin traer jugadores)
+                var activeTournaments = await repo.GetRunningTournamentsAsync();
 
                 foreach (var t in activeTournaments)
                 {
@@ -37,13 +36,12 @@ public class TournamentClockWorker : BackgroundService
                     var now = DateTime.UtcNow;
                     var elapsed = (now - t.ClockState.LastUpdatedAt.Value).TotalSeconds;
 
-                    // Actualizar referencia temporal
                     t.ClockState.LastUpdatedAt = now;
                     t.ClockState.SecondsRemaining -= elapsed;
 
                     bool stateChanged = false;
 
-                    // Lógica de cambio de nivel
+                    // Lógica de cambio de nivel...
                     if (t.ClockState.SecondsRemaining <= 0)
                     {
                         var nextLevel = t.Levels.FirstOrDefault(l => l.LevelNumber == t.CurrentLevel + 1);
@@ -53,7 +51,6 @@ public class TournamentClockWorker : BackgroundService
                             t.ClockState.SecondsRemaining = nextLevel.DurationSeconds;
                             stateChanged = true;
 
-                            // Notificar cambio de nivel
                             await _notifier.QueueNotificationAsync(t.Id, "timer-sync", new
                             {
                                 timeLeft = t.ClockState.SecondsRemaining,
@@ -62,7 +59,6 @@ public class TournamentClockWorker : BackgroundService
                         }
                         else
                         {
-                            // Fin del torneo
                             t.Status = TournamentStatus.Paused;
                             t.ClockState.IsPaused = true;
                             t.ClockState.SecondsRemaining = 0;
@@ -70,12 +66,15 @@ public class TournamentClockWorker : BackgroundService
                         }
                     }
 
-                    // Guardamos cambios (solo si cambió el nivel o pasaron X segundos para persistencia)
-                    // NOTA: Para alto rendimiento, no guardes en BD cada segundo. Hazlo cada 10s o al cambiar nivel.
-                    if (stateChanged)
-                    {
-                        await repo.UpdateAsync(t);
-                    }
+                    // --- CAMBIO CLAVE AQUÍ ---
+                    // Guardamos CADA SEGUNDO (o cuando cambia estado) usando el método ligero.
+                    // Al ser un $set parcial, es muy rápido y seguro.
+                    await repo.UpdateClockStateAsync(
+                        t.Id,
+                        t.ClockState,
+                        t.CurrentLevel,
+                        t.Status
+                    );
                 }
             }
         }

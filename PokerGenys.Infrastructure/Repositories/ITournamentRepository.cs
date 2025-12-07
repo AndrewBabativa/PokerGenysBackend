@@ -13,5 +13,7 @@ namespace PokerGenys.Infrastructure.Repositories
         Task<Tournament> CreateAsync(Tournament tournament);
         Task<Tournament> UpdateAsync(Tournament tournament);
         Task<bool> DeleteAsync(Guid id);
+        Task UpdateClockStateAsync(Guid tournamentId, ClockState clockState, int currentLevel, TournamentStatus status);
+        Task<List<Tournament>> GetRunningTournamentsAsync();
     }
 }
