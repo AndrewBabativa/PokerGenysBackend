@@ -39,5 +39,12 @@ namespace PokerGenys.Infrastructure.Repositories
                 .SortBy(s => s.StartTime)        // Ordenamos por hora de inicio
                 .ToListAsync();
         }
+
+        public async Task<List<Session>> GetByDayIdAsync(Guid dayId)
+        {
+            return await _context.Sessions
+                .Find(s => s.DayId == dayId)
+                .ToListAsync();
+        }
     }
 }

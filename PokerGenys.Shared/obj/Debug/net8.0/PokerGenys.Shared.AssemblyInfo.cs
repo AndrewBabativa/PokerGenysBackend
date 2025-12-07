@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PokerGenys.Shared")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2827607330d2ee46c6db301418988be6d41ada72")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+77d56563dbe7d65d9ae58a61bc3fa97fcf152cc8")]
 [assembly: System.Reflection.AssemblyProductAttribute("PokerGenys.Shared")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PokerGenys.Shared")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

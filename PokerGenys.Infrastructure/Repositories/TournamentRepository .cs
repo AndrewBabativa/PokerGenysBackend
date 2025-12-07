@@ -56,5 +56,12 @@ namespace PokerGenys.Infrastructure.Repositories
 
             await _context.Tournaments.UpdateOneAsync(t => t.Id == tournamentId, updateDef);
         }
+
+        public async Task<List<Tournament>> GetByWorkingDayIdAsync(Guid workingDayId)
+        {
+            return await _context.Tournaments
+                .Find(t => t.WorkingDayId == workingDayId)
+                .ToListAsync();
+        }
     }
 }
