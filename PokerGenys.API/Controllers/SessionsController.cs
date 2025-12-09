@@ -24,9 +24,12 @@ namespace PokerGenys.API.Controllers
             return Ok(sessions);
         }
 
-        [HttpGet]
+        [HttpGet("{tableId}")]
         public async Task<IActionResult> GetAllByTableId(Guid tableId)
         {
+            // Validación opcional por si envían basura
+            if (tableId == Guid.Empty) return BadRequest("ID inválido");
+
             var sessions = await _service.GetAllByTableIdAsync(tableId);
             return Ok(sessions);
         }
