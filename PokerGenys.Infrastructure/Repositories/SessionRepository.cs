@@ -16,6 +16,14 @@ namespace PokerGenys.Infrastructure.Repositories
         public async Task<List<Session>> GetAllActiveAsync() =>
             await _context.Sessions.Find(s => s.EndTime == null).ToListAsync();
 
+        public async Task<List<Session>> GetAllByTableIdAsync(Guid tableId)
+        {
+            return await _context.Sessions
+                .Find(s => s.TableId == tableId) 
+                .SortBy(s => s.StartTime)        
+                .ToListAsync();
+        }
+
         public async Task<List<Session>> GetByDayAsync(Guid dayId) =>
             await _context.Sessions.Find(s => s.DayId == dayId).ToListAsync();
 

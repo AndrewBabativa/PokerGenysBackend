@@ -24,11 +24,17 @@ namespace PokerGenys.API.Controllers
             return Ok(sessions);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAllByTableId(Guid tableId)
+        {
+            var sessions = await _service.GetAllByTableIdAsync(tableId);
+            return Ok(sessions);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] Session session)
         {
             var created = await _service.CreateAsync(session);
-            // Nota: Aquí se dispara la lógica de auto-creación de BuyIn en el servicio
             return CreatedAtAction(nameof(GetAll), new { id = created.Id }, created);
         }
 

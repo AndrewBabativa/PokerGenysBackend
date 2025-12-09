@@ -16,5 +16,7 @@ namespace PokerGenys.Infrastructure.Repositories
         Task<List<Session>> GetByTableIdAsync(Guid tableId);
 
         Task<List<Session>> GetByDayIdAsync(Guid dayId);
+
+        Task<List<Session>> GetAllByTableIdAsync(Guid tableId);
     }
 }

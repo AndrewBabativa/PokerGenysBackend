@@ -12,6 +12,8 @@ namespace PokerGenys.Services
 
         public Task<List<Session>> GetAllAsync() => _repo.GetAllActiveAsync();
 
+        public Task<List<Session>> GetAllByTableIdAsync(Guid tableId) => _repo.GetAllByTableIdAsync(tableId);
+
         public async Task<Session> CreateAsync(Session session)
         {
             if (session.Id == Guid.Empty) session.Id = Guid.NewGuid();
