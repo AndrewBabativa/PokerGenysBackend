@@ -216,6 +216,22 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "PokerGenys.API.Controllers.ReportsController",
+    "Method": "GetDailyReport",
+    "RelativePath": "api/reports/daily",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "date",
+        "Type": "System.DateTime",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "PokerGenys.API.Controllers.SessionsController",
     "Method": "GetAll",
     "RelativePath": "api/sessions",
@@ -257,6 +273,22 @@
       {
         "Name": "session",
         "Type": "PokerGenys.Domain.Models.Session",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.SessionsController",
+    "Method": "GetTableReport",
+    "RelativePath": "api/sessions/report/{tableId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "tableId",
+        "Type": "System.Guid",
         "IsRequired": true
       }
     ],
@@ -406,6 +438,22 @@
   },
   {
     "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
+    "Method": "FinishTournament",
+    "RelativePath": "api/Tournaments/{id}/finish",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
     "Method": "PauseTournament",
     "RelativePath": "api/Tournaments/{id}/pause",
     "HttpMethod": "POST",
@@ -499,6 +547,32 @@
       {
         "Name": "req",
         "Type": "PokerGenys.Domain.Models.Tournaments.GamePaymentRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
+    "Method": "RegisterPayout",
+    "RelativePath": "api/Tournaments/{id}/registrations/{regId}/payout",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "regId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "req",
+        "Type": "PokerGenys.Domain.Models.Tournaments.PayoutRequest",
         "IsRequired": true
       }
     ],

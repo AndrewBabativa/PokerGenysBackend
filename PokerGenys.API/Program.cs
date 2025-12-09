@@ -32,6 +32,7 @@ builder.Services.AddHttpClient("NodeServer", client =>
 });
 
 // Program.cs
+builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IWorkingDayRepository, WorkingDayRepository>();
 builder.Services.AddSingleton<SocketNotificationService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<SocketNotificationService>());

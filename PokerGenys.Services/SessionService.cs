@@ -19,11 +19,23 @@ namespace PokerGenys.Services
             // LOGICA CRÍTICA: Crear transacción inicial de BuyIn automáticamente
             if (session.InitialBuyIn > 0)
             {
-                var hasBuyIn = session.Transactions != null && session.Transactions.Any(t => t.Type == TransactionType.BuyIn);
+                // Aseguramos que la lista no sea null
+                if (session.Transactions == null) session.Transactions = new List<Transaction>();
+
+                var hasBuyIn = session.Transactions.Any(t => t.Type == TransactionType.BuyIn);
 
                 if (!hasBuyIn)
                 {
-                    if (session.Transactions == null) session.Transactions = new List<Transaction>();
+                    // FIX: Definir valores por defecto para evitar el crash si la lista está vacía
+                    var defaultStatus = PaymentStatus.Pending; // Por defecto asumimos pendiente si no se especifica
+                    var defaultMethod = PaymentMethod.Cash;    // Por defecto efectivo
+
+                    // Si por casualidad el frontend mandó alguna otra transacción (que no sea BuyIn), intentamos copiar su método
+                    if (session.Transactions.Count > 0)
+                    {
+                        defaultStatus = session.Transactions[0].PaymentStatus;
+                        defaultMethod = session.Transactions[0].PaymentMethod;
+                    }
 
                     session.Transactions.Add(new Transaction
                     {
@@ -31,8 +43,9 @@ namespace PokerGenys.Services
                         SessionId = session.Id,
                         Type = TransactionType.BuyIn,
                         Amount = session.InitialBuyIn,
-                        PaymentStatus = session.Transactions[0].PaymentStatus,
-                        PaymentMethod = session.Transactions[0].PaymentMethod,
+                        // Usamos las variables seguras calculadas arriba
+                        PaymentStatus = defaultStatus,
+                        PaymentMethod = defaultMethod,
                         CreatedAt = DateTime.UtcNow,
                         Description = "Initial BuyIn (Auto-generated)"
                     });

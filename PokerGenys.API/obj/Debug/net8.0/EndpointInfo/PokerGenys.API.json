@@ -357,6 +357,28 @@
         }
       }
     },
+    "/api/reports/daily": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/sessions": {
       "get": {
         "tags": [
@@ -433,6 +455,29 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/sessions/report/{tableId}": {
+      "get": {
+        "tags": [
+          "Sessions"
+        ],
+        "parameters": [
+          {
+            "name": "tableId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -1096,6 +1141,80 @@
         }
       }
     },
+    "/api/Tournaments/{id}/finish": {
+      "post": {
+        "tags": [
+          "Tournaments"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Tournaments/{id}/registrations/{regId}/payout": {
+      "post": {
+        "tags": [
+          "Tournaments"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "regId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.Tournaments.PayoutRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.Tournaments.PayoutRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PokerGenys.Domain.Models.Tournaments.PayoutRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/waitlist": {
       "get": {
         "tags": [
@@ -1566,7 +1685,8 @@
           "Standard",
           "Regular",
           "Whale",
-          "Nit"
+          "Nit",
+          "Guest"
         ],
         "type": "string"
       },
@@ -1901,6 +2021,24 @@
         ],
         "type": "string"
       },
+      "PokerGenys.Domain.Models.Tournaments.PayoutRequest": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "method": {
+            "type": "string",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "PokerGenys.Domain.Models.Tournaments.PayoutTier": {
         "type": "object",
         "properties": {
@@ -1958,6 +2096,11 @@
       "PokerGenys.Domain.Models.Tournaments.RegisterRequest": {
         "type": "object",
         "properties": {
+          "playerId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
           "playerName": {
             "type": "string",
             "nullable": true
@@ -2058,7 +2201,9 @@
           },
           "items": {
             "type": "object",
-            "additionalProperties": { },
+            "additionalProperties": {
+              "type": "string"
+            },
             "nullable": true
           },
           "paymentMethod": {
@@ -2291,7 +2436,8 @@
           "Active",
           "Broken",
           "FinalTable",
-          "Paused"
+          "Paused",
+          "Finished"
         ],
         "type": "string"
       },
