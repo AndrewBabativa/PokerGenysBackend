@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PokerGenys.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d5a5138793af4c61ff18a10ee59f7ee4e77bf491")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e5f2727bc6c3ef68621534331eb4931d0bd43bea")]
 [assembly: System.Reflection.AssemblyProductAttribute("PokerGenys.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PokerGenys.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

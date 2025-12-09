@@ -30,11 +30,10 @@ namespace PokerGenys.Services
                     var defaultStatus = PaymentStatus.Pending; // Por defecto asumimos pendiente si no se especifica
                     var defaultMethod = PaymentMethod.Cash;    // Por defecto efectivo
 
-                    // Si por casualidad el frontend mandó alguna otra transacción (que no sea BuyIn), intentamos copiar su método
                     if (session.Transactions.Count > 0)
                     {
-                        defaultStatus = session.Transactions[0].PaymentStatus;
-                        defaultMethod = session.Transactions[0].PaymentMethod;
+                        defaultStatus = session.Transactions[0].PaymentStatus ?? PaymentStatus.Pending;
+                        defaultMethod = session.Transactions[0].PaymentMethod ?? PaymentMethod.Cash;
                     }
 
                     session.Transactions.Add(new Transaction
