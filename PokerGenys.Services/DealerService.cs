@@ -52,8 +52,8 @@ namespace PokerGenys.Services
 
         // --- SHIFTS (Delegación) ---
 
-        public Task<List<DealerShift>> GetShiftsAsync(Guid dayId, Guid? tableId) =>
-            _repo.GetShiftsAsync(dayId, tableId);
+        public Task<List<DealerShift>> GetShiftsAsync(Guid tableId) =>
+            _repo.GetShiftsAsync(tableId);
 
         public Task<DealerShift> AddShiftAsync(DealerShift shift)
         {

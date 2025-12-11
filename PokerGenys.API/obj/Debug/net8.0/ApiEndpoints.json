@@ -8,13 +8,8 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "dayId",
-        "Type": "System.Guid",
-        "IsRequired": false
-      },
-      {
         "Name": "tableId",
-        "Type": "System.Nullable\u00601[[System.Guid, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "Type": "System.Guid",
         "IsRequired": false
       }
     ],
@@ -273,6 +268,22 @@
       {
         "Name": "session",
         "Type": "PokerGenys.Domain.Models.Session",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.SessionsController",
+    "Method": "GetAllByTableId",
+    "RelativePath": "api/sessions/{tableId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "tableId",
+        "Type": "System.Guid",
         "IsRequired": true
       }
     ],

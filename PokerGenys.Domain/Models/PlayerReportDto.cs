@@ -16,5 +16,6 @@ namespace PokerGenys.Domain.Models
         public decimal Restaurant { get; set; }
         public decimal NetResult { get; set; } // (CashOut - BuyIn - Restaurant)
         public bool HasPendingDebt { get; set; }
+        public int totalMinutes { get; set; }
     }
 }

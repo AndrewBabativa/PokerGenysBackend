@@ -15,7 +15,7 @@ namespace PokerGenys.Infrastructure.Repositories
         Task DeleteAsync(Guid id);
 
         // --- SHIFTS (Gestión de Turnos - Ya existente) ---
-        Task<List<DealerShift>> GetShiftsAsync(Guid dayId, Guid? tableId);
+        Task<List<DealerShift>> GetShiftsAsync(Guid tableId);
         Task<DealerShift> AddShiftAsync(DealerShift shift);
         Task UpdateShiftAsync(DealerShift shift);
         Task<DealerShift?> GetShiftByIdAsync(Guid id);

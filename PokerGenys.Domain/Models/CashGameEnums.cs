@@ -40,6 +40,7 @@
     /// </summary>
     public enum TransactionCategory
     {
+        Clear,
         Restaurant,
         Other
     }

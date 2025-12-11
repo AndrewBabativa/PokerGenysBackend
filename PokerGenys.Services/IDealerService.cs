@@ -15,7 +15,7 @@ namespace PokerGenys.Services
         Task DeleteAsync(Guid id);
 
         // SHIFTS
-        Task<List<DealerShift>> GetShiftsAsync(Guid dayId, Guid? tableId);
+        Task<List<DealerShift>> GetShiftsAsync(Guid tableId);
         Task<DealerShift> AddShiftAsync(DealerShift shift);
         Task<DealerShift?> UpdateShiftAsync(DealerShift shift);
     }

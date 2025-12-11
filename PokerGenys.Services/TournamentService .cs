@@ -312,12 +312,8 @@ namespace PokerGenys.Services
             return transaction;
         }
 
-        // =============================================================
-        // OTROS Y HELPERS
-        // =============================================================
-
         // ============================================================
-        // LÓGICA DE ELIMINACIÓN Y GESTIÓN DE ESTRUCTURA
+        // LÓGICA DE ELIMINACIÓN Y GESTIÓN DE ESTRUCTURA (MEJORADA)
         // ============================================================
         public async Task<RemoveResult> RemoveRegistrationAsync(Guid tournamentId, Guid regId)
         {
@@ -328,19 +324,24 @@ namespace PokerGenys.Services
             var player = t.Registrations.FirstOrDefault(r => r.Id == regId);
             if (player == null) return new RemoveResult { Success = false };
 
-            // 1. Marcar como Eliminado y guardar timestamp
+            // 1. Marcar como Eliminado
             player.Status = RegistrationStatus.Eliminated;
             player.EliminatedAt = DateTime.UtcNow;
+
+            // IMPORTANTE: NO hacemos null el SeatId/TableId inmediatamente si queremos mantener la historia,
+            // pero para liberar el asiento visualmente en el frontend, sí debemos hacerlo o manejarlo allá.
+            // Para evitar el "corrimiento" de puestos, simplemente liberamos este asiento específico.
+            // Los demás jugadores MANTIENEN sus seatId actuales.
             player.TableId = null;
             player.SeatId = null;
 
             // Actualizar contadores
             t.ActivePlayers = t.Registrations.Count(r => r.Status == RegistrationStatus.Active);
 
-            // 2. Limpiar mesas vacías (Regla de negocio)
+            // 2. Limpiar mesas vacías
             CleanupEmptyTables(t);
 
-            // 3. Verificar eventos importantes (Mesa Final o Ganador)
+            // 3. Verificar Mesa Final o Ganador
             var result = CheckForStructureEvents(t);
 
             await _repo.UpdateAsync(t);
@@ -409,20 +410,18 @@ namespace PokerGenys.Services
 
         private (string? InstructionType, string Message) AssignSmartSeat(Tournament t, TournamentRegistration reg)
         {
+            // ... (Lógica de mesas nuevas y balanceo igual) ...
             var activePlayers = t.Registrations.Where(r => r.Status == RegistrationStatus.Active).ToList();
             var activeTables = t.Tables.Where(tb => tb.Status == TournamentTableStatus.Active).ToList();
 
             int seatsPerTable = t.Seating.SeatsPerTable > 0 ? t.Seating.SeatsPerTable : 9;
 
             // 1. Verificar si necesitamos abrir una mesa nueva
-            // (Si la capacidad actual está al 100% llena)
             int currentCapacity = activeTables.Count * seatsPerTable;
-            // Contamos los activos + el nuevo que va a entrar
             int totalActiveWithNew = activePlayers.Count + (activePlayers.Any(x => x.Id == reg.Id) ? 0 : 1);
 
             if (totalActiveWithNew > currentCapacity)
             {
-                // LÓGICA DE APERTURA DE MESA Y BALANCEO
                 int nextNum = t.Tables.Any() ? t.Tables.Max(x => x.TableNumber) + 1 : 1;
                 var newTable = new TournamentTable
                 {
@@ -435,58 +434,57 @@ namespace PokerGenys.Services
                 t.Tables.Add(newTable);
                 activeTables.Add(newTable);
 
-                // Movemos a la mitad de la mesa más llena para balancear
-                // (Estrategia simple: Tomar la mesa con más gente y mover la mitad)
+                // Balanceo... (código existente)
                 var fullestTable = activeTables
-                    .OrderByDescending(tb => activePlayers.Count(p => p.TableId == tb.Id.ToString()))
-                    .First();
+                   .OrderByDescending(tb => activePlayers.Count(p => p.TableId == tb.Id.ToString()))
+                   .First();
 
                 var victims = activePlayers
                     .Where(p => p.TableId == fullestTable.Id.ToString())
-                    .OrderBy(x => Guid.NewGuid()) // Randomizar quién se mueve
+                    .OrderBy(x => Guid.NewGuid())
                     .Take(activePlayers.Count(p => p.TableId == fullestTable.Id.ToString()) / 2)
                     .ToList();
 
-                // Asignar víctimas a la nueva mesa (Sillas 1, 2, 3...)
                 int seatCounter = 1;
-                foreach (var v in victims)
+                // ALEATORIEDAD EN NUEVA MESA: Barajamos las víctimas antes de asignar
+                var shuffledVictims = victims.OrderBy(x => Guid.NewGuid()).ToList();
+
+                foreach (var v in shuffledVictims)
                 {
                     v.TableId = newTable.Id.ToString();
                     v.SeatId = seatCounter.ToString();
                     seatCounter++;
                 }
 
-                // Asignar al NUEVO jugador a la nueva mesa también
                 reg.TableId = newTable.Id.ToString();
                 reg.SeatId = seatCounter.ToString();
 
                 return ("INFO_ALERT", $"Se abrió la Mesa {nextNum} y se balancearon jugadores.");
             }
 
-            // 2. Asignación Normal (Buscar hueco en mesas existentes)
-            // Buscamos la mesa con más huecos para mantener balance, o simplemente la primera con espacio
+            // 2. Asignación Normal (Random Seat en mesa existente)
             var targetTable = activeTables
-                .OrderBy(tb => activePlayers.Count(p => p.TableId == tb.Id.ToString())) // Llenar la más vacía primero
+                .OrderBy(tb => activePlayers.Count(p => p.TableId == tb.Id.ToString()))
                 .FirstOrDefault(tb => activePlayers.Count(p => p.TableId == tb.Id.ToString()) < seatsPerTable);
 
             if (targetTable == null) return (null, "Error crítico: No hay mesas disponibles.");
 
-            // 3. ENCONTRAR EL PRIMER 'SEAT_ID' DISPONIBLE (Esto arregla la superposición)
+            // Buscar asientos libres
             var occupiedSeats = activePlayers
                 .Where(p => p.TableId == targetTable.Id.ToString() && int.TryParse(p.SeatId, out _))
                 .Select(p => int.Parse(p.SeatId!))
                 .ToHashSet();
 
-            int freeSeat = 1;
-            while (occupiedSeats.Contains(freeSeat))
-            {
-                freeSeat++;
-            }
+            // Elegir un asiento libre al azar
+            var availableSeats = Enumerable.Range(1, seatsPerTable).Where(s => !occupiedSeats.Contains(s)).ToList();
+            if (!availableSeats.Any()) return (null, "Error: Mesa llena lógicamente.");
+
+            var randomSeat = availableSeats[new Random().Next(availableSeats.Count)];
 
             reg.TableId = targetTable.Id.ToString();
-            reg.SeatId = freeSeat.ToString();
+            reg.SeatId = randomSeat.ToString();
 
-            return (null, $"Asignado a {targetTable.Name}, Silla {freeSeat}");
+            return (null, $"Asignado a {targetTable.Name}, Silla {randomSeat}");
         }
 
         private void CleanupEmptyTables(Tournament t)
@@ -553,7 +551,13 @@ namespace PokerGenys.Services
                 await _repo.UpdateAsync(t);
             }
 
-            var IsFinalTable = t.ActivePlayers <= t.Seating.FinalTableSize && (t.Levels.Find(l => l.LevelNumber == t.CurrentLevel).AllowRebuy == false) ? true : false;
+            var IsFinalTable = false;
+
+            if (t.Levels != null && t.Levels.Count > 0)
+                IsFinalTable = t.ActivePlayers <= t.Seating.FinalTableSize &&
+                              (t.Levels.Find(l => l.LevelNumber == t.CurrentLevel).AllowRebuy == false) &&
+                               t.CurrentLevel > 1 && t.Status == TournamentStatus.Running
+                               ? true : false;
 
             return new TournamentState
             {
@@ -570,33 +574,20 @@ namespace PokerGenys.Services
         private RemoveResult CheckForStructureEvents(Tournament t)
         {
             var activePlayers = t.Registrations.Where(r => r.Status == RegistrationStatus.Active).ToList();
-            var activeTables = t.Tables.Where(tb => tb.Status == TournamentTableStatus.Active || tb.Status == TournamentTableStatus.FinalTable).ToList(); // IMPORTANTE: Incluir FinalTable en la cuenta
+            var activeTables = t.Tables.Where(tb => tb.Status == TournamentTableStatus.Active || tb.Status == TournamentTableStatus.FinalTable).ToList();
 
             int ftSize = t.Seating.FinalTableSize > 0 ? t.Seating.FinalTableSize : 9;
 
-            // CASO: MESA FINAL
-            // Solo entramos si hay más de 1 mesa activa y llegamos al número de jugadores
-            if (activePlayers.Count <= ftSize)
+            // DETECCIÓN DE MESA FINAL
+            if (activePlayers.Count <= ftSize && activeTables.Count > 1 && (t.Levels.Find(l => l.LevelNumber== t.CurrentLevel).AllowRebuy == false))
             {
-                // 1. Elegir la mesa destino (La mesa 1, o reutilizar una existente)
+                // 1. Elegir mesa destino
                 var finalTable = t.Tables.OrderBy(tb => tb.TableNumber).FirstOrDefault(tb => tb.Status != TournamentTableStatus.Broken);
-                if (activePlayers.Count == 1)
-                {
-                    finalTable.Name = "Mesa Final";
-                    finalTable.Status = TournamentTableStatus.Finished;
-                    return new RemoveResult
-                    {
-                        Success = true,
-                        InstructionType = "TOURNAMENT_WINNER",
-                        Message = "¡Mesa Final Terminda!",
-                        FromTable = finalTable.Id.ToString(),
-                    };
-                }
 
                 if (finalTable == null) return new RemoveResult { Success = true };
 
                 finalTable.Name = "Mesa Final";
-                finalTable.Status = TournamentTableStatus.FinalTable; // Ojo con este estado en el Frontend
+                finalTable.Status = TournamentTableStatus.FinalTable;
 
                 // 2. Romper las demás mesas
                 foreach (var table in activeTables.Where(tb => tb.Id != finalTable.Id))
@@ -604,11 +595,13 @@ namespace PokerGenys.Services
                     table.Status = TournamentTableStatus.Broken;
                 }
 
-                // 3. Reseat aleatorio
+                // 3. RESEAT ALEATORIO (RIFA DE PUESTOS)
+                // Barajamos a todos los jugadores activos
                 var rng = new Random();
                 var shuffledPlayers = activePlayers.OrderBy(x => rng.Next()).ToList();
-                int seat = 1;
 
+                // Asignamos puestos del 1 al N de forma secuencial a la lista barajada
+                int seat = 1;
                 foreach (var p in shuffledPlayers)
                 {
                     p.TableId = finalTable.Id.ToString();
@@ -620,9 +613,30 @@ namespace PokerGenys.Services
                 {
                     Success = true,
                     InstructionType = "FINAL_TABLE_START",
-                    Message = "¡Mesa Final Formada!",
+                    Message = "¡Mesa Final Formada! Puestos sorteados.",
                     FromTable = finalTable.Id.ToString()
                 };
+            }
+            else if ((t.Levels.Find(l => l.LevelNumber == t.CurrentLevel).AllowRebuy == true))
+            {
+                t.Tables.ForEach(t => t.Status = TournamentTableStatus.Active);
+            }
+
+            // Caso Ganador
+            if (activePlayers.Count == 1)
+            {
+                var finalTable = t.Tables.FirstOrDefault(tb => tb.Status == TournamentTableStatus.FinalTable || tb.Status == TournamentTableStatus.Active);
+                if (finalTable != null)
+                {
+                    finalTable.Status = TournamentTableStatus.Finished;
+                    return new RemoveResult
+                    {
+                        Success = true,
+                        InstructionType = "TOURNAMENT_WINNER",
+                        Message = "¡Torneo Finalizado!",
+                        FromTable = finalTable.Id.ToString(),
+                    };
+                }
             }
 
             return new RemoveResult { Success = true };

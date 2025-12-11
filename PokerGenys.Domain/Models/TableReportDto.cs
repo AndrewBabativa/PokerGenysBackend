@@ -22,5 +22,6 @@ namespace PokerGenys.Domain.Models
 
         // 3. DETALLE POR JUGADOR
         public List<PlayerReportDto> Players { get; set; } = new List<PlayerReportDto>();
+        public List<DealerReportDto> Dealers { get; set; } = new();
     }
 }

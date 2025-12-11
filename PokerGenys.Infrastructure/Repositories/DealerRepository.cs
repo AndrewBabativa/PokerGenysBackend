@@ -55,11 +55,9 @@ namespace PokerGenys.Infrastructure.Repositories
         // SHIFTS (Lógica existente)
         // =================================================
 
-        public async Task<List<DealerShift>> GetShiftsAsync(Guid dayId, Guid? tableId)
+        public async Task<List<DealerShift>> GetShiftsAsync(Guid tableId)
         {
-            var filter = Builders<DealerShift>.Filter.Eq(s => s.DayId, dayId);
-            if (tableId.HasValue)
-                filter &= Builders<DealerShift>.Filter.Eq(s => s.TableId, tableId.Value);
+            var filter = Builders<DealerShift>.Filter.Eq(s => s.TableId, tableId);
 
             return await _context.DealerShifts.Find(filter).ToListAsync();
         }

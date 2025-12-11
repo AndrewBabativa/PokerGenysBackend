@@ -66,12 +66,12 @@ namespace PokerGenys.API.Controllers
         // ============================================================
 
         [HttpGet("api/dealer-shifts")]
-        public async Task<IActionResult> GetShifts([FromQuery] Guid dayId, [FromQuery] Guid? tableId)
+        public async Task<IActionResult> GetShifts([FromQuery] Guid tableId)
         {
-            if (dayId == Guid.Empty)
-                return BadRequest("El parámetro 'dayId' es obligatorio.");
+            if (tableId == Guid.Empty)
+                return BadRequest("El parámetro 'tableId' es obligatorio.");
 
-            var shifts = await _service.GetShiftsAsync(dayId, tableId);
+            var shifts = await _service.GetShiftsAsync(tableId);
             return Ok(shifts);
         }
 

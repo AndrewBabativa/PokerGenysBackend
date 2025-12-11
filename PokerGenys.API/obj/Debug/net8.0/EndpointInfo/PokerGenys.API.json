@@ -138,14 +138,6 @@
         ],
         "parameters": [
           {
-            "name": "dayId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "tableId",
             "in": "query",
             "schema": {
@@ -413,6 +405,29 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/sessions/{tableId}": {
+      "get": {
+        "tags": [
+          "Sessions"
+        ],
+        "parameters": [
+          {
+            "name": "tableId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -1408,6 +1423,7 @@
       },
       "PokerGenys.Domain.Models.CashGame.TransactionCategory": {
         "enum": [
+          "Clear",
           "Restaurant",
           "Other"
         ],
