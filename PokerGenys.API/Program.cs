@@ -10,6 +10,16 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// =============================================================================
+// SOLUCIÓN ERROR INOTIFY (Option A)
+// Desactivamos la recarga en caliente para evitar el límite de archivos abiertos
+// =============================================================================
+builder.Configuration.Sources.Clear();
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: false)
+    .AddEnvironmentVariables();
+
 // ==========================================
 // 1. CONFIGURACIÓN DE MONGO DB
 // ==========================================
@@ -37,9 +47,11 @@ builder.Services.AddScoped<IWorkingDayRepository, WorkingDayRepository>();
 builder.Services.AddSingleton<SocketNotificationService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<SocketNotificationService>());
 builder.Services.AddHostedService<TournamentClockWorker>();
+
 // Contexto de Base de Datos (Singleton es seguro para MongoClient)
 builder.Services.AddSingleton(new MongoContext(mongoSettings));
 builder.Services.AddHttpClient();
+
 // --- TORNEOS (Lógica existente) ---
 builder.Services.AddScoped<ITournamentRepository, TournamentRepository>();
 builder.Services.AddScoped<ITournamentService, TournamentService>();
