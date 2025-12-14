@@ -1,9 +1,6 @@
 ﻿using MongoDB.Driver;
-using PokerGenys.Domain.Models;
+using PokerGenys.Domain.Models.Core;
 using PokerGenys.Infrastructure.Data;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace PokerGenys.Infrastructure.Repositories
 {
@@ -16,13 +13,8 @@ namespace PokerGenys.Infrastructure.Repositories
             _context = context;
         }
 
-        // =================================================
-        // CRUD DEALERS
-        // =================================================
-
         public async Task<List<Dealer>> GetAllAsync()
         {
-            // Ordenar por nombre para facilitar listas desplegables
             return await _context.Dealers.Find(_ => true)
                                  .SortBy(d => d.FirstName)
                                  .ToListAsync();
@@ -47,14 +39,8 @@ namespace PokerGenys.Infrastructure.Repositories
 
         public async Task DeleteAsync(Guid id)
         {
-            // Opción: Podrías hacer Soft Delete (marcar como Inactivo) en vez de borrar físico
             await _context.Dealers.DeleteOneAsync(d => d.Id == id);
         }
-
-        // =================================================
-        // SHIFTS (Lógica existente)
-        // =================================================
-
         public async Task<List<DealerShift>> GetShiftsAsync(Guid tableId)
         {
             var filter = Builders<DealerShift>.Filter.Eq(s => s.TableId, tableId);

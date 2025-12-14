@@ -25,7 +25,7 @@
     "Parameters": [
       {
         "Name": "shift",
-        "Type": "PokerGenys.Domain.Models.DealerShift",
+        "Type": "PokerGenys.Domain.Models.Core.DealerShift",
         "IsRequired": true
       }
     ],
@@ -46,7 +46,7 @@
       },
       {
         "Name": "shift",
-        "Type": "PokerGenys.Domain.Models.DealerShift",
+        "Type": "PokerGenys.Domain.Models.Core.DealerShift",
         "IsRequired": true
       }
     ],
@@ -72,7 +72,7 @@
     "Parameters": [
       {
         "Name": "dealer",
-        "Type": "PokerGenys.Domain.Models.Dealer",
+        "Type": "PokerGenys.Domain.Models.Core.Dealer",
         "IsRequired": true
       }
     ],
@@ -109,7 +109,7 @@
       },
       {
         "Name": "dealer",
-        "Type": "PokerGenys.Domain.Models.Dealer",
+        "Type": "PokerGenys.Domain.Models.Core.Dealer",
         "IsRequired": true
       }
     ],
@@ -151,7 +151,7 @@
     "Parameters": [
       {
         "Name": "player",
-        "Type": "PokerGenys.Domain.Models.Player",
+        "Type": "PokerGenys.Domain.Models.Core.Player",
         "IsRequired": true
       }
     ],
@@ -188,7 +188,7 @@
       },
       {
         "Name": "player",
-        "Type": "PokerGenys.Domain.Models.Player",
+        "Type": "PokerGenys.Domain.Models.Core.Player",
         "IsRequired": true
       }
     ],
@@ -246,7 +246,7 @@
     "Parameters": [
       {
         "Name": "session",
-        "Type": "PokerGenys.Domain.Models.Session",
+        "Type": "PokerGenys.Domain.Models.CashGame.CashSession",
         "IsRequired": true
       }
     ],
@@ -267,7 +267,7 @@
       },
       {
         "Name": "session",
-        "Type": "PokerGenys.Domain.Models.Session",
+        "Type": "PokerGenys.Domain.Models.CashGame.CashSession",
         "IsRequired": true
       }
     ],
@@ -306,7 +306,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "PokerGenys.API.Controllers.TablesController",
+    "ContainingType": "PokerGenys.API.Controllers.CashTablesController",
     "Method": "Get",
     "RelativePath": "api/tables",
     "HttpMethod": "GET",
@@ -314,7 +314,7 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "dayId",
+        "Name": "workingDayId",
         "Type": "System.Guid",
         "IsRequired": false
       }
@@ -322,7 +322,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "PokerGenys.API.Controllers.TablesController",
+    "ContainingType": "PokerGenys.API.Controllers.CashTablesController",
     "Method": "Create",
     "RelativePath": "api/tables",
     "HttpMethod": "POST",
@@ -331,14 +331,30 @@
     "Parameters": [
       {
         "Name": "table",
-        "Type": "PokerGenys.Domain.Models.TableInstance",
+        "Type": "PokerGenys.Domain.Models.CashGame.CashTable",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "PokerGenys.API.Controllers.TablesController",
+    "ContainingType": "PokerGenys.API.Controllers.CashTablesController",
+    "Method": "GetById",
+    "RelativePath": "api/tables/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.CashTablesController",
     "Method": "Update",
     "RelativePath": "api/tables/{id}",
     "HttpMethod": "PUT",
@@ -352,7 +368,7 @@
       },
       {
         "Name": "table",
-        "Type": "PokerGenys.Domain.Models.TableInstance",
+        "Type": "PokerGenys.Domain.Models.CashGame.CashTable",
         "IsRequired": true
       }
     ],
@@ -387,7 +403,7 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "t",
+        "Name": "tournament",
         "Type": "PokerGenys.Domain.Models.Tournaments.Tournament",
         "IsRequired": true
       }
@@ -396,7 +412,7 @@
   },
   {
     "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
-    "Method": "Get",
+    "Method": "GetById",
     "RelativePath": "api/Tournaments/{id}",
     "HttpMethod": "GET",
     "IsController": true,
@@ -424,7 +440,7 @@
         "IsRequired": true
       },
       {
-        "Name": "t",
+        "Name": "tournament",
         "Type": "PokerGenys.Domain.Models.Tournaments.Tournament",
         "IsRequired": true
       }
@@ -449,8 +465,50 @@
   },
   {
     "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
-    "Method": "FinishTournament",
-    "RelativePath": "api/Tournaments/{id}/finish",
+    "Method": "Patch",
+    "RelativePath": "api/Tournaments/{id}",
+    "HttpMethod": "PATCH",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "patchDoc",
+        "Type": "Microsoft.AspNetCore.JsonPatch.JsonPatchDocument\u00601[[PokerGenys.Domain.Models.Tournaments.Tournament, PokerGenys.Domain, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
+    "Method": "AddOnPlayer",
+    "RelativePath": "api/Tournaments/{id}/addon",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "PokerGenys.Domain.Models.Tournaments.AddonRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
+    "Method": "Pause",
+    "RelativePath": "api/Tournaments/{id}/pause",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
@@ -465,8 +523,29 @@
   },
   {
     "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
-    "Method": "PauseTournament",
-    "RelativePath": "api/Tournaments/{id}/pause",
+    "Method": "RemovePlayer",
+    "RelativePath": "api/Tournaments/{id}/players/{regId}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "regId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
+    "Method": "RebuyPlayer",
+    "RelativePath": "api/Tournaments/{id}/rebuy",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
@@ -474,6 +553,11 @@
       {
         "Name": "id",
         "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "PokerGenys.Domain.Models.Tournaments.RebuyRequest",
         "IsRequired": true
       }
     ],
@@ -493,7 +577,7 @@
         "IsRequired": true
       },
       {
-        "Name": "req",
+        "Name": "request",
         "Type": "PokerGenys.Domain.Models.Tournaments.RegisterRequest",
         "IsRequired": true
       }
@@ -518,131 +602,6 @@
   },
   {
     "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
-    "Method": "RemoveRegistration",
-    "RelativePath": "api/Tournaments/{id}/registrations/{regId}",
-    "HttpMethod": "DELETE",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Guid",
-        "IsRequired": true
-      },
-      {
-        "Name": "regId",
-        "Type": "System.Guid",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
-    "Method": "AddOnPlayer",
-    "RelativePath": "api/Tournaments/{id}/registrations/{regId}/addon",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Guid",
-        "IsRequired": true
-      },
-      {
-        "Name": "regId",
-        "Type": "System.Guid",
-        "IsRequired": true
-      },
-      {
-        "Name": "req",
-        "Type": "PokerGenys.Domain.Models.Tournaments.GamePaymentRequest",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
-    "Method": "RegisterPayout",
-    "RelativePath": "api/Tournaments/{id}/registrations/{regId}/payout",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Guid",
-        "IsRequired": true
-      },
-      {
-        "Name": "regId",
-        "Type": "System.Guid",
-        "IsRequired": true
-      },
-      {
-        "Name": "req",
-        "Type": "PokerGenys.Domain.Models.Tournaments.PayoutRequest",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
-    "Method": "RebuyPlayer",
-    "RelativePath": "api/Tournaments/{id}/registrations/{regId}/rebuy",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Guid",
-        "IsRequired": true
-      },
-      {
-        "Name": "regId",
-        "Type": "System.Guid",
-        "IsRequired": true
-      },
-      {
-        "Name": "req",
-        "Type": "PokerGenys.Domain.Models.Tournaments.GamePaymentRequest",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
-    "Method": "AssignSeat",
-    "RelativePath": "api/Tournaments/{id}/registrations/{regId}/seat",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Guid",
-        "IsRequired": true
-      },
-      {
-        "Name": "regId",
-        "Type": "System.Guid",
-        "IsRequired": true
-      },
-      {
-        "Name": "req",
-        "Type": "PokerGenys.Domain.Models.Tournaments.SeatRequest",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
     "Method": "RecordSale",
     "RelativePath": "api/Tournaments/{id}/sales",
     "HttpMethod": "POST",
@@ -655,7 +614,7 @@
         "IsRequired": true
       },
       {
-        "Name": "req",
+        "Name": "request",
         "Type": "PokerGenys.Domain.Models.Tournaments.ServiceSaleRequest",
         "IsRequired": true
       }
@@ -664,7 +623,28 @@
   },
   {
     "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
-    "Method": "StartTournament",
+    "Method": "AssignSeat",
+    "RelativePath": "api/Tournaments/{id}/seat",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "PokerGenys.Domain.Models.Tournaments.SeatRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
+    "Method": "Start",
     "RelativePath": "api/Tournaments/{id}/start",
     "HttpMethod": "POST",
     "IsController": true,
@@ -689,43 +669,6 @@
       {
         "Name": "id",
         "Type": "System.Guid",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
-    "Method": "GetTables",
-    "RelativePath": "api/Tournaments/{id}/tables",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Guid",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "PokerGenys.API.Controllers.TournamentsController",
-    "Method": "RecordGenericTransaction",
-    "RelativePath": "api/Tournaments/{id}/transactions",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Guid",
-        "IsRequired": true
-      },
-      {
-        "Name": "tx",
-        "Type": "PokerGenys.Domain.Models.Tournaments.TournamentTransaction",
         "IsRequired": true
       }
     ],
@@ -812,20 +755,31 @@
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
-    "Parameters": [],
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "PokerGenys.Domain.Models.Core.CreateWorkingDayRequest",
+        "IsRequired": true
+      }
+    ],
     "ReturnTypes": []
   },
   {
     "ContainingType": "PokerGenys.API.Controllers.WorkingDaysController",
     "Method": "Close",
     "RelativePath": "api/working-days/{id}/close",
-    "HttpMethod": "PATCH",
+    "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
         "Name": "id",
         "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "PokerGenys.Domain.Models.Core.CloseWorkingDayRequest",
         "IsRequired": true
       }
     ],

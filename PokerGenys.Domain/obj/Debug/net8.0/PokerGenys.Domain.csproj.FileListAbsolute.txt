@@ -1,12 +1,12 @@
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Domain\bin\Debug\net8.0\PokerGenys.Domain.deps.json
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Domain\bin\Debug\net8.0\PokerGenys.Domain.dll
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Domain\bin\Debug\net8.0\PokerGenys.Domain.pdb
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Domain\obj\Debug\net8.0\PokerGenys.Domain.csproj.AssemblyReference.cache
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Domain\obj\Debug\net8.0\PokerGenys.Domain.GeneratedMSBuildEditorConfig.editorconfig
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Domain\obj\Debug\net8.0\PokerGenys.Domain.AssemblyInfoInputs.cache
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Domain\obj\Debug\net8.0\PokerGenys.Domain.AssemblyInfo.cs
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Domain\obj\Debug\net8.0\PokerGenys.Domain.csproj.CoreCompileInputs.cache
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Domain\obj\Debug\net8.0\PokerGenys.Domain.sourcelink.json
-C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Domain\bin\Debug\net8.0\PokerGenys.Domain.deps.json
-C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Domain\bin\Debug\net8.0\PokerGenys.Domain.dll
-C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Domain\bin\Debug\net8.0\PokerGenys.Domain.pdb
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Domain\obj\Debug\net8.0\PokerGenys.Domain.dll
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Domain\obj\Debug\net8.0\refint\PokerGenys.Domain.dll
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.Domain\obj\Debug\net8.0\PokerGenys.Domain.pdb

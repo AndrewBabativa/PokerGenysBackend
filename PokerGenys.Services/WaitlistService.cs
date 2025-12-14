@@ -1,9 +1,7 @@
-﻿using PokerGenys.Domain.Models;
+﻿using PokerGenys.Domain.Models.CashGame;
+using PokerGenys.Domain.Models.Core;
 using PokerGenys.Infrastructure.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+
 
 namespace PokerGenys.Services
 {
@@ -11,13 +9,13 @@ namespace PokerGenys.Services
     {
         private readonly IWaitlistRepository _waitlistRepo;
         private readonly IPlayerRepository _playerRepo;
-        private readonly ITableRepository _tableRepo;
-        private readonly ISessionService _sessionService; // Inyectamos el servicio de sesión para reusar lógica
+        private readonly ICashTableRepository _tableRepo;
+        private readonly ISessionService _sessionService; 
 
         public WaitlistService(
             IWaitlistRepository waitlistRepo,
             IPlayerRepository playerRepo,
-            ITableRepository tableRepo,
+            ICashTableRepository tableRepo,
             ISessionService sessionService)
         {
             _waitlistRepo = waitlistRepo;
@@ -52,7 +50,7 @@ namespace PokerGenys.Services
 
         public Task RemoveFromWaitlistAsync(Guid id) => _waitlistRepo.DeleteAsync(id);
 
-        public async Task<Session?> SeatPlayerAsync(Guid waitlistItemId)
+        public async Task<CashSession?> SeatPlayerAsync(Guid waitlistItemId)
         {
             // 1. Obtener item de lista de espera
             var item = await _waitlistRepo.GetByIdAsync(waitlistItemId);
@@ -63,16 +61,16 @@ namespace PokerGenys.Services
             if (table == null) return null;
 
             // 3. Crear el objeto Sesión
-            var newSession = new Session
+            var newSession = new CashSession
             {
                 Id = Guid.NewGuid(),
-                DayId = table.DayId,
+                WorkingDayId = table.WorkingDayId,
                 TableId = table.Id,
                 PlayerId = item.PlayerId,
-                InitialBuyIn = table.InitialBuyInBase, // Sugerido del default de la mesa
+                InitialBuyIn = table.InitialBuyInBase, 
                 Stack = table.InitialBuyInBase,
                 StartTime = DateTime.UtcNow,
-                Transactions = new List<Transaction>()
+                Transactions = new List<FinancialTransaction>()
             };
 
             // 4. Delegar creación al SessionService (esto crea la TX de BuyIn auto)

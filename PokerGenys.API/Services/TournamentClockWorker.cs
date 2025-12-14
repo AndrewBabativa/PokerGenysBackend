@@ -1,8 +1,5 @@
-﻿// Services/TournamentClockWorker.cs
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using PokerGenys.Domain.Models; // Asegúrate de tener los using correctos
-using PokerGenys.Domain.Models.Tournaments;
+﻿
+using PokerGenys.Domain.Enums; 
 using PokerGenys.Infrastructure.Repositories;
 
 public class TournamentClockWorker : BackgroundService

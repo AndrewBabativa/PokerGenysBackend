@@ -14,7 +14,7 @@ namespace PokerGenys.API.Controllers
             _service = service;
         }
         [HttpGet("daily")]
-        public async Task<IActionResult> GetDailyReport([FromQuery] DateTime date) // ✅ Acepta DateTime
+        public async Task<IActionResult> GetDailyReport([FromQuery] DateTime date) 
         {
             try
             {

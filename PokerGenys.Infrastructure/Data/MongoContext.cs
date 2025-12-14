@@ -1,9 +1,10 @@
 ﻿// Infrastructure/Data/MongoContext.cs
 using MongoDB.Driver;
-using PokerGenys.Domain.Models;
+using PokerGenys.Domain.Models.CashGame;
+using PokerGenys.Domain.Models.Core;
 using PokerGenys.Domain.Models.Tournaments;
 using PokerGenys.Shared;
-using System.Numerics;
+
 
 namespace PokerGenys.Infrastructure.Data
 {
@@ -20,8 +21,8 @@ namespace PokerGenys.Infrastructure.Data
         public IMongoCollection<Tournament> Tournaments => _database.GetCollection<Tournament>("Tournaments");
         // Agrega estas propiedades a tu clase MongoContext existente
         public IMongoCollection<WorkingDay> WorkingDays => _database.GetCollection<WorkingDay>("WorkingDays");
-        public IMongoCollection<TableInstance> Tables => _database.GetCollection<TableInstance>("Tables");
-        public IMongoCollection<Session> Sessions => _database.GetCollection<Session>("Sessions");
+        public IMongoCollection<CashTable> Tables => _database.GetCollection<CashTable>("CashTable");
+        public IMongoCollection<CashSession> Sessions => _database.GetCollection<CashSession>("CashSession");
         public IMongoCollection<Dealer> Dealers => _database.GetCollection<Dealer>("Dealers");
         public IMongoCollection<DealerShift> DealerShifts => _database.GetCollection<DealerShift>("DealerShifts");
         public IMongoCollection<WaitlistItem> Waitlist => _database.GetCollection<WaitlistItem>("Waitlist");

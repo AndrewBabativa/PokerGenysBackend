@@ -1,10 +1,7 @@
-﻿// Infrastructure/Repositories/TournamentRepository.cs
-using MongoDB.Driver;
+﻿using MongoDB.Driver;
 using PokerGenys.Domain.Models.Tournaments;
 using PokerGenys.Infrastructure.Data;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using PokerGenys.Domain.Enums;
 
 namespace PokerGenys.Infrastructure.Repositories
 {
@@ -63,5 +60,6 @@ namespace PokerGenys.Infrastructure.Repositories
                 .Find(t => t.WorkingDayId == workingDayId)
                 .ToListAsync();
         }
+        
     }
 }

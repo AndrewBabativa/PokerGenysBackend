@@ -1,5 +1,4 @@
-﻿using MongoDB.Driver;
-using PokerGenys.Domain.Models;
+﻿using PokerGenys.Domain.Models.Core; 
 using PokerGenys.Infrastructure.Repositories;
 using System;
 using System.Collections.Generic;
@@ -23,14 +22,10 @@ namespace PokerGenys.Services
         public async Task<Player> CreateAsync(Player player)
         {
             if (player.Id == Guid.Empty) player.Id = Guid.NewGuid();
-
             player.CreatedAt = DateTime.UtcNow;
 
-            // Inicializar sub-documentos para evitar NullReferenceException
             if (player.Financials == null) player.Financials = new PlayerFinancials();
             if (player.Stats == null) player.Stats = new PlayerStats();
-
-            // Aquí podrías validar duplicados de DocumentId si la base de datos crece
 
             return await _repo.CreateAsync(player);
         }
@@ -40,9 +35,7 @@ namespace PokerGenys.Services
             var existing = await _repo.GetByIdAsync(player.Id);
             if (existing == null) return null;
 
-            // PROTECCIÓN DE DATOS CRÍTICOS
-            // No permitimos que un Update simple sobrescriba las finanzas o estadísticas acumuladas.
-            // Esas se deben actualizar solo a través de procesos de cierre de caja o juego.
+            // Protección de datos financieros
             player.Financials = existing.Financials;
             player.Stats = existing.Stats;
 
@@ -55,7 +48,6 @@ namespace PokerGenys.Services
 
         public async Task DeleteAsync(Guid id)
         {
-            // Validar si tiene deuda antes de borrar
             var player = await _repo.GetByIdAsync(id);
             if (player != null && player.Financials.TotalDebt > 0)
             {
@@ -63,7 +55,5 @@ namespace PokerGenys.Services
             }
             await _repo.DeleteAsync(id);
         }
-
-
     }
 }

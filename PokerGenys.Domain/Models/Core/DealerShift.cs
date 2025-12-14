@@ -1,0 +1,31 @@
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using System;
+
+namespace PokerGenys.Domain.Models.Core
+{
+    public class DealerShift
+    {
+        [BsonId]
+        public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid WorkingDayId { get; set; }
+
+        public Guid TableId { get; set; }
+        public Guid DealerId { get; set; }
+
+        public DateTime StartTime { get; set; } = DateTime.UtcNow;
+        public DateTime? EndTime { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public string? Notes { get; set; }
+
+
+        [BsonIgnore]
+        public double DurationMinutes => EndTime.HasValue
+            ? (EndTime.Value - StartTime).TotalMinutes
+            : (DateTime.UtcNow - StartTime).TotalMinutes;
+
+        [BsonIgnore]
+        public bool IsActive => !EndTime.HasValue;
+    }
+}

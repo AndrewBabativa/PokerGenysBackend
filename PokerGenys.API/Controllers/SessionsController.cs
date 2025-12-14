@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PokerGenys.Domain.Models;
+using PokerGenys.Domain.Models.CashGame;
 using PokerGenys.Services;
-using System;
-using System.Threading.Tasks;
 
 namespace PokerGenys.API.Controllers
 {
@@ -35,14 +33,14 @@ namespace PokerGenys.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Session session)
+        public async Task<IActionResult> Create([FromBody] CashSession session)
         {
             var created = await _service.CreateAsync(session);
             return CreatedAtAction(nameof(GetAll), new { id = created.Id }, created);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] Session session)
+        public async Task<IActionResult> Update(Guid id, [FromBody] CashSession session)
         {
             if (id != session.Id)
                 return BadRequest("ID mismatch");
@@ -60,7 +58,6 @@ namespace PokerGenys.API.Controllers
             if (tableId == Guid.Empty)
                 return BadRequest("El ID de la mesa no es válido.");
 
-            // Llama al servicio "explotador de datos" que creamos
             var report = await _service.GetTableReportAsync(tableId);
 
             return Ok(report);

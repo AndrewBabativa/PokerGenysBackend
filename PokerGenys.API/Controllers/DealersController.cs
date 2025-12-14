@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PokerGenys.Domain.Models;
+using PokerGenys.Domain.Models.Core;
 using PokerGenys.Services;
-using System;
-using System.Threading.Tasks;
+
 
 namespace PokerGenys.API.Controllers
 {

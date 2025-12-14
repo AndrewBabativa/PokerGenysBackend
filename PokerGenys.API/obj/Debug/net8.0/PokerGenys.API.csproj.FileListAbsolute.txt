@@ -4,7 +4,6 @@ C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\ne
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\net8.0\PokerGenys.API.AssemblyInfoInputs.cache
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\net8.0\PokerGenys.API.AssemblyInfo.cs
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\net8.0\PokerGenys.API.csproj.CoreCompileInputs.cache
-C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\net8.0\PokerGenys.API.MvcApplicationPartsAssemblyInfo.cs
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\net8.0\PokerGenys.API.MvcApplicationPartsAssemblyInfo.cache
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\bin\Debug\net8.0\appsettings.Development.json
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\bin\Debug\net8.0\appsettings.json
@@ -65,3 +64,6 @@ C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\bin\Debug\ne
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\bin\Debug\net8.0\Microsoft.Extensions.Logging.dll
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\bin\Debug\net8.0\Microsoft.Extensions.Logging.Abstractions.dll
 C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\bin\Debug\net8.0\System.Diagnostics.DiagnosticSource.dll
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\bin\Debug\net8.0\Microsoft.AspNetCore.JsonPatch.dll
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\bin\Debug\net8.0\Newtonsoft.Json.dll
+C:\Users\lbaba\Desktop\AndresPoker\PokerGenysBackend\PokerGenys.API\obj\Debug\net8.0\PokerGenys.API.MvcApplicationPartsAssemblyInfo.cs

@@ -1,22 +1,19 @@
-﻿using PokerGenys.Domain.Models;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using PokerGenys.Domain.Models.CashGame;
 
 namespace PokerGenys.Infrastructure.Repositories
 {
     public interface ISessionRepository
     {
-        Task<List<Session>> GetAllActiveAsync();
-        Task<List<Session>> GetByDayAsync(Guid dayId);
-        Task<Session?> GetByIdAsync(Guid id);
-        Task<Session> CreateAsync(Session session);
-        Task UpdateAsync(Session session);
+        Task<List<CashSession>> GetAllActiveAsync();
+        Task<List<CashSession>> GetByDayAsync(Guid dayId);
+        Task<CashSession?> GetByIdAsync(Guid id);
+        Task<CashSession> CreateAsync(CashSession session);
+        Task UpdateAsync(CashSession session);
 
-        Task<List<Session>> GetByTableIdAsync(Guid tableId);
+        Task<List<CashSession>> GetByTableIdAsync(Guid tableId);
 
-        Task<List<Session>> GetByDayIdAsync(Guid dayId);
+        Task<List<CashSession>> GetByDayIdAsync(Guid dayId);
 
-        Task<List<Session>> GetAllByTableIdAsync(Guid tableId);
+        Task<List<CashSession>> GetAllByTableIdAsync(Guid tableId);
     }
 }

@@ -1,7 +1,7 @@
 ﻿using MongoDB.Driver;
-using PokerGenys.Domain.Models;
 using PokerGenys.Infrastructure.Data;
-using PokerGenys.Domain.Models.CashGame;
+using PokerGenys.Domain.Models.Core;
+using PokerGenys.Domain.Enums;
 
 namespace PokerGenys.Infrastructure.Repositories
 {
@@ -36,7 +36,7 @@ namespace PokerGenys.Infrastructure.Repositories
 
             // Asumiendo que tu modelo WorkingDay tiene un campo 'Date' o 'CreatedAt'
             return await _context.WorkingDays
-                .Find(w => w.CreatedAt >= start && w.ClosedAt < end)
+                .Find(w => w.StartAt >= start && w.EndAt < end)
                 .FirstOrDefaultAsync();
         }
     }

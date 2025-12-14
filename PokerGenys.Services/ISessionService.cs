@@ -1,17 +1,17 @@
-﻿using PokerGenys.Domain.Models;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using PokerGenys.Domain.Models.CashGame;
+using PokerGenys.Domain.DTOs.Audit;
+using PokerGenys.Domain.DTOs.Reports;
 
 namespace PokerGenys.Services
 {
     public interface ISessionService
     {
-        Task<List<Session>> GetAllAsync();
-        Task<Session> CreateAsync(Session session);
-        Task<Session?> UpdateAsync(Session session);
+        Task<List<CashSession>> GetAllAsync();
+        Task<CashSession> CreateAsync(CashSession session);
+        Task<CashSession?> UpdateAsync(CashSession session);
         Task<TableReportDto> GetTableReportAsync(Guid tableId);
-        Task<List<Session>> GetAllByTableIdAsync(Guid tableId);
-
+        Task<List<CashSession>> GetAllByTableIdAsync(Guid tableId);
+        Task<CashAuditResult> GetFinancialAuditAsync(Guid workingDayId);
     }
+
 }

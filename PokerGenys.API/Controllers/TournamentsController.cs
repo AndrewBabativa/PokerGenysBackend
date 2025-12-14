@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using PokerGenys.Domain.Models;
-using PokerGenys.Domain.Models.Tournaments; // Aquí están tus modelos (ServiceSaleRequest, etc.)
+﻿using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Mvc;
+using PokerGenys.Domain.Enums;
+using PokerGenys.Domain.Models.Core;
+using PokerGenys.Domain.Models.Tournaments; // Aquí están ahora tus Requests
 using PokerGenys.Services;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
+using System;
+using System.Collections.Generic; // Necesario para Dictionary
+using System.Threading.Tasks;
 
 namespace PokerGenys.API.Controllers
 {
@@ -13,53 +15,92 @@ namespace PokerGenys.API.Controllers
     public class TournamentsController : ControllerBase
     {
         private readonly ITournamentService _service;
-        private readonly IHttpClientFactory _httpClientFactory;
-        private const string NODE_SERVER_URL = "https://pokersocketserver.onrender.com/api/webhook/emit";
-        private readonly SocketNotificationService _notifier; 
 
-        public TournamentsController(ITournamentService service, IHttpClientFactory httpClientFactory, SocketNotificationService notifier)
+        public TournamentsController(ITournamentService service)
         {
             _service = service;
-            _httpClientFactory = httpClientFactory;
-            _notifier = notifier;
         }
 
-        // ============================================================
-        // 1. CONTROL DE JUEGO (Start / Pause)
-        // ============================================================
+        // ==================================================================================
+        // 1. CRUD BÁSICO
+        // ==================================================================================
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var tournaments = await _service.GetAllAsync();
+            return Ok(tournaments);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(Guid id)
+        {
+            var tournament = await _service.GetByIdAsync(id);
+            if (tournament == null) return NotFound("Torneo no encontrado.");
+            return Ok(tournament);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] Tournament tournament)
+        {
+            try
+            {
+                var created = await _service.CreateAsync(tournament);
+                return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] Tournament tournament)
+        {
+            if (id != tournament.Id) return BadRequest("ID mismatch.");
+            try
+            {
+                var updated = await _service.UpdateAsync(tournament);
+                return Ok(updated);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            try
+            {
+                var success = await _service.DeleteAsync(id);
+                if (!success) return NotFound();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // ==================================================================================
+        // 2. CONTROL DE JUEGO
+        // ==================================================================================
+
         [HttpPost("{id}/start")]
-        public async Task<IActionResult> StartTournament(Guid id)
+        public async Task<IActionResult> Start(Guid id)
         {
             var t = await _service.StartTournamentAsync(id);
             if (t == null) return NotFound();
-
-            // USAMOS EL NUEVO NOTIFIER
-            await _notifier.QueueNotificationAsync(id, "tournament-control", new
-            {
-                type = "start",
-                data = new
-                {
-                    level = t.CurrentLevel,
-                    timeLeft = t.ClockState.SecondsRemaining,
-                    lastUpdatedAt = t.ClockState.LastUpdatedAt,
-                    status = "Running"
-                }
-            });
-
             return Ok(t);
         }
 
         [HttpPost("{id}/pause")]
-        public async Task<IActionResult> PauseTournament(Guid id)
+        public async Task<IActionResult> Pause(Guid id)
         {
             var t = await _service.PauseTournamentAsync(id);
             if (t == null) return NotFound();
-
-            await _notifier.QueueNotificationAsync(id, "tournament-control", new
-            {
-                type = "pause",
-                data = new { level = t.CurrentLevel, timeLeft = t.ClockState?.SecondsRemaining ?? 0 }
-            });
             return Ok(t);
         }
 
@@ -67,267 +108,194 @@ namespace PokerGenys.API.Controllers
         public async Task<IActionResult> GetState(Guid id)
         {
             var state = await _service.GetTournamentStateAsync(id);
-            return state == null ? NotFound() : Ok(state);
+            if (state == null) return NotFound();
+            return Ok(state);
         }
 
-        // ============================================================
-        // 2. CRUD BÁSICO
-        // ============================================================
-
-        [HttpGet] public async Task<IActionResult> GetAll() => Ok(await _service.GetAllAsync());
-
-        [HttpGet("{id}")]
-        public async Task<IActionResult> Get(Guid id)
-        {
-            var t = await _service.GetByIdAsync(id);
-            return t == null ? NotFound() : Ok(t);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Tournament t)
-        {
-            var created = await _service.CreateAsync(t);
-            return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
-        }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] Tournament t)
-        {
-            if (id != t.Id) return BadRequest("ID mismatch");
-            return Ok(await _service.UpdateAsync(t));
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id)
-        {
-            var ok = await _service.DeleteAsync(id);
-            return ok ? NoContent() : NotFound();
-        }
-
-        // ============================================================
-        // 3. JUGADORES Y ACCIONES
-        // ============================================================
+        // ==================================================================================
+        // 3. JUGADORES (REGISTRO, REBUYS, ADDONS)
+        // ==================================================================================
 
         [HttpGet("{id}/registrations")]
-        public async Task<IActionResult> GetRegistrations(Guid id) => Ok(await _service.GetRegistrationsAsync(id));
+        public async Task<IActionResult> GetRegistrations(Guid id)
+        {
+            var regs = await _service.GetRegistrationsAsync(id);
+            return Ok(regs);
+        }
 
         [HttpPost("{id}/register")]
-        public async Task<IActionResult> RegisterPlayer(Guid id, [FromBody] RegisterRequest req)
+        public async Task<IActionResult> RegisterPlayer(Guid id, [FromBody] RegisterRequest request)
         {
             try
             {
                 var result = await _service.RegisterPlayerAsync(
                     id,
-                    req.PlayerName,
-                    req.PaymentMethod,
-                    req.Bank,
-                    req.Reference,
-                    req.PlayerId // <--- Pasamos el ID si existe
+                    request.PlayerName,
+                    request.PaymentMethod.ToString(),
+                    request.Bank,
+                    request.Reference,
+                    request.PlayerId
                 );
 
-                if (result == null) return BadRequest("No se pudo registrar (verifique reglas de torneo).");
-
-                // ... Notificación socket ...
+                if (result == null) return NotFound("Torneo no encontrado.");
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
         }
 
-        // ... imports
-
-        [HttpDelete("{id}/registrations/{regId}")]
-        public async Task<IActionResult> RemoveRegistration(Guid id, Guid regId)
-        {
-            var result = await _service.RemoveRegistrationAsync(id, regId);
-            if (!result.Success) return NotFound();
-
-            // Notificar eliminación
-            await _notifier.QueueNotificationAsync(id, "player-action", new
-            {
-                action = "remove",
-                payload = new { id = regId, status = "Eliminated" }
-            });
-
-            // Notificar instrucciones especiales (Mesa final, Ganador)
-            if (!string.IsNullOrEmpty(result.InstructionType))
-            {
-                await _notifier.QueueNotificationAsync(id, "tournament-instruction", new
-                {
-                    type = result.InstructionType,
-                    message = result.Message,
-                    // data = extraData
-                });
-            }
-
-            return Ok(result);
-        }
-
-        // Usa SeatRequest definido abajo
-        [HttpPost("{id}/registrations/{regId}/seat")]
-        public async Task<IActionResult> AssignSeat(Guid id, Guid regId, [FromBody] SeatRequest req)
-        {
-            var reg = await _service.AssignSeatAsync(id, regId, req.TableId, req.SeatId);
-            if (reg == null) return NotFound();
-            await _notifier.QueueNotificationAsync(id, "player-action", new { action = "move", payload = reg });
-            return Ok(reg);
-        }
-
-        [HttpGet("{id}/tables")]
-        public async Task<IActionResult> GetTables(Guid id)
-        {
-            var t = await _service.GetByIdAsync(id);
-            if (t == null) return NotFound();
-            return Ok(t.Tables ?? new List<TournamentTable>());
-        }
-
-        // Usa GamePaymentRequest (Que YA existe en tus modelos de dominio)
-        [HttpPost("{id}/registrations/{regId}/rebuy")]
-        public async Task<IActionResult> RebuyPlayer(Guid id, Guid regId, [FromBody] GamePaymentRequest req)
-        {
-            var result = await _service.RebuyPlayerAsync(id, regId, req.PaymentMethod, req.Bank, req.Reference);
-            if (result == null) return BadRequest("Rebuy no permitido");
-            await _notifier.QueueNotificationAsync(id, "rebuy", result.Registration);
-            return Ok(result);
-        }
-
-        [HttpPost("{id}/registrations/{regId}/addon")]
-        public async Task<IActionResult> AddOnPlayer(Guid id, Guid regId, [FromBody] GamePaymentRequest req)
-        {
-            var result = await _service.AddOnPlayerAsync(id, regId, req.PaymentMethod, req.Bank, req.Reference);
-            if (result == null) return BadRequest("Add-on no disponible");
-            await _notifier.QueueNotificationAsync(id, "player-action", new { action = "addon", payload = result.Registration });
-            return Ok(result);
-        }
-
-        // Usa ServiceSaleRequest (Que YA existe en tus modelos de dominio)
-        [HttpPost("{id}/sales")]
-        public async Task<IActionResult> RecordSale(Guid id, [FromBody] ServiceSaleRequest req)
+        [HttpPost("{id}/rebuy")]
+        public async Task<IActionResult> RebuyPlayer(Guid id, [FromBody] RebuyRequest request)
         {
             try
             {
-                // Validación de seguridad
-                if (req.Amount <= 0) return BadRequest("El monto debe ser mayor a 0");
+                var result = await _service.RebuyPlayerAsync(
+                    id,
+                    request.RegistrationId,
+                    request.PaymentMethod.ToString(),
+                    request.Bank,
+                    request.Reference
+                );
 
-                // CONVERSIÓN CLAVE: De <string, string> a <string, object>
-                // Esto "limpia" los datos para que Mongo los acepte sin problemas
-                var safeItems = req.Items?.ToDictionary(
-                    k => k.Key,
-                    v => (object)v.Value
-                ) ?? new Dictionary<string, object>();
+                if (result == null) return BadRequest("No se pudo procesar el Rebuy.");
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("{id}/addon")]
+        public async Task<IActionResult> AddOnPlayer(Guid id, [FromBody] AddonRequest request)
+        {
+            try
+            {
+                var result = await _service.AddOnPlayerAsync(
+                    id,
+                    request.RegistrationId,
+                    request.PaymentMethod.ToString(),
+                    request.Bank,
+                    request.Reference
+                );
+
+                if (result == null) return BadRequest("No se pudo procesar el Add-On.");
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpDelete("{id}/players/{regId}")]
+        public async Task<IActionResult> RemovePlayer(Guid id, Guid regId)
+        {
+            try
+            {
+                var result = await _service.RemoveRegistrationAsync(id, regId);
+                if (!result.Success) return NotFound("Registro no encontrado.");
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("{id}/seat")]
+        public async Task<IActionResult> AssignSeat(Guid id, [FromBody] SeatRequest request)
+        {
+            try
+            {
+                // Validación básica de IDs
+                if (!Guid.TryParse(request.RegistrationId, out Guid regGuid))
+                    return BadRequest("RegistrationId inválido.");
+
+                var reg = await _service.AssignSeatAsync(
+                    id,
+                    regGuid,
+                    request.TableId,
+                    request.SeatId // En el Request del dominio le pusimos SeatId para coincidir con el servicio
+                );
+
+                if (reg == null) return BadRequest("Fallo al asignar silla.");
+                return Ok(reg);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // ==================================================================================
+        // 4. VENTAS Y SERVICIOS
+        // ==================================================================================
+
+        [HttpPost("{id}/sales")]
+        public async Task<IActionResult> RecordSale(Guid id, [FromBody] ServiceSaleRequest request)
+        {
+            try
+            {
+                var metadata = new Dictionary<string, object>();
+                if (request.Items != null)
+                {
+                    foreach (var item in request.Items) metadata.Add(item.Key, item.Value);
+                }
 
                 var tx = await _service.RecordServiceSaleAsync(
                     id,
-                    req.PlayerId,
-                    req.Amount,
-                    req.Description,
-                    safeItems,
-                    req.PaymentMethod,
-                    req.Bank,
-                    req.Reference
+                    request.PlayerId,
+                    request.Amount,
+                    request.Description,
+                    metadata,
+                    request.PaymentMethod.ToString(),
+                    request.Bank,
+                    request.Reference
                 );
 
-                if (tx == null) return NotFound("Torneo no encontrado");
-
+                if (tx == null) return NotFound("Torneo no encontrado.");
                 return Ok(tx);
             }
             catch (Exception ex)
             {
-                // Log para ver el error real en la consola de Render
-                Console.WriteLine($"[ERROR VENTA] {ex.Message} \n {ex.StackTrace}");
-                return StatusCode(500, new { error = ex.Message });
+                return BadRequest(new { message = ex.Message });
             }
         }
 
-        [HttpPost("{id}/transactions")]
-        public async Task<IActionResult> RecordGenericTransaction(Guid id, [FromBody] TournamentTransaction tx)
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<Tournament> patchDoc)
         {
-            if (tx.TournamentId != Guid.Empty && tx.TournamentId != id) return BadRequest("ID mismatch");
-            var result = await _service.RecordTransactionAsync(id, tx);
-            return result == null ? NotFound() : Ok(result);
-        }
+            if (patchDoc == null) return BadRequest("No patch document provided.");
 
-        // En TournamentsController.cs
-
-        [HttpPost("{id}/finish")]
-        public async Task<IActionResult> FinishTournament(Guid id)
-        {
-            // 1. Obtener torneo
-            var t = await _service.GetByIdAsync(id);
-            if (t == null) return NotFound();
-
-            // 2. Aplicar lógica de cierre (Congelar estado)
-            t.Status = TournamentStatus.Finished;
-            t.EndTime = DateTime.UtcNow;
-
-            // Detener reloj forzosamente
-            if (t.ClockState != null)
+            try
             {
-                t.ClockState.IsPaused = true;
-                t.ClockState.SecondsRemaining = 0;
-                t.ClockState.LastUpdatedAt = DateTime.UtcNow;
-            }
+                // 1. Obtener el torneo existente de la BD
+                // Asumo que tienes un método GetByIdAsync en tu servicio
+                var tournament = await _service.GetByIdAsync(id);
 
-            // 3. Cerrar todas las mesas activas
-            if (t.Tables != null)
-            {
-                foreach (var table in t.Tables)
+                if (tournament == null) return NotFound($"Tournament with id {id} not found.");
+
+                // 2. Aplicar los cambios al objeto en memoria
+                // ModelState captura errores si intentan parchear propiedades que no existen o tipos incorrectos
+                patchDoc.ApplyTo(tournament, error =>
                 {
-                    table.Status = TournamentTableStatus.Finished;
-                }
+                    ModelState.AddModelError(error.Operation.path ?? "JsonPatch", error.ErrorMessage);
+                });
+                // 3. Validar si el modelo resultante es válido
+                if (!ModelState.IsValid) return BadRequest(ModelState);
+
+                // 4. Guardar los cambios usando tu método Update existente
+                var updated = await _service.UpdateAsync(tournament);
+
+                return Ok(updated);
             }
-
-            // 4. Guardar cambios
-            await _service.UpdateAsync(t);
-
-            // 5. Notificar a las pantallas (TV) para que muestren al ganador si hay
-            await _notifier.QueueNotificationAsync(id, "tournament-instruction", new
+            catch (Exception ex)
             {
-                type = "TOURNAMENT_FINISHED",
-                message = "El torneo ha finalizado."
-            });
-
-            return Ok(t);
-        }
-
-        [HttpPost("{id}/registrations/{regId}/payout")] // <--- RUTA QUE BUSCA EL FRONTEND
-        public async Task<IActionResult> RegisterPayout(Guid id, Guid regId, [FromBody] PayoutRequest req)
-        {
-            // Lógica para registrar el pago del premio
-            // Esto es similar a una venta, pero es un egreso (Type = PrizePayout)
-
-            // 1. Validar torneo y jugador
-            var t = await _service.GetByIdAsync(id);
-            if (t == null) return NotFound();
-
-            // 2. Registrar Transacción de Egreso
-            var tx = new TournamentTransaction
-            {
-                Id = Guid.NewGuid(),
-                TournamentId = t.Id,
-                WorkingDayId = t.WorkingDayId,
-                PlayerId = regId,
-                Type = TransactionType.PrizePayout, // Importante: Tipo Premio
-                Amount = req.Amount,
-                PaymentMethod = Enum.Parse<PaymentMethod>(req.Method), // O usar string seguro
-                Description = req.Notes ?? "Pago de Premio",
-                Timestamp = DateTime.UtcNow
-            };
-
-            t.Transactions.Add(tx);
-
-            // 3. Actualizar Jugador (opcional, para saber cuánto ganó)
-            var player = t.Registrations.FirstOrDefault(r => r.Id == regId);
-            if (player != null)
-            {
-                player.PayoutAmount = req.Amount;
+                return BadRequest(new { message = ex.Message });
             }
-
-            await _service.UpdateAsync(t);
-
-            return Ok(tx);
         }
     }
 }

@@ -1,7 +1,4 @@
-﻿using PokerGenys.Domain.Models;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using PokerGenys.Domain.Models.Core;
 
 namespace PokerGenys.Services
 {

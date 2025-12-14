@@ -1,9 +1,6 @@
 ﻿using MongoDB.Driver;
-using PokerGenys.Domain.Models;
+using PokerGenys.Domain.Models.CashGame;
 using PokerGenys.Infrastructure.Data;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace PokerGenys.Infrastructure.Repositories
 {
@@ -13,10 +10,10 @@ namespace PokerGenys.Infrastructure.Repositories
 
         public SessionRepository(MongoContext context) => _context = context;
 
-        public async Task<List<Session>> GetAllActiveAsync() =>
+        public async Task<List<CashSession>> GetAllActiveAsync() =>
             await _context.Sessions.Find(s => s.EndTime == null).ToListAsync();
 
-        public async Task<List<Session>> GetAllByTableIdAsync(Guid tableId)
+        public async Task<List<CashSession>> GetAllByTableIdAsync(Guid tableId)
         {
             return await _context.Sessions
                 .Find(s => s.TableId == tableId) 
@@ -24,34 +21,33 @@ namespace PokerGenys.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<List<Session>> GetByDayAsync(Guid dayId) =>
-            await _context.Sessions.Find(s => s.DayId == dayId).ToListAsync();
+        public async Task<List<CashSession>> GetByDayAsync(Guid workingDayId) =>
+            await _context.Sessions.Find(s => s.WorkingDayId == workingDayId).ToListAsync();
 
-        public async Task<Session?> GetByIdAsync(Guid id) =>
+        public async Task<CashSession?> GetByIdAsync(Guid id) =>
             await _context.Sessions.Find(s => s.Id == id).FirstOrDefaultAsync();
 
-        public async Task<Session> CreateAsync(Session session)
+        public async Task<CashSession> CreateAsync(CashSession session)
         {
             await _context.Sessions.InsertOneAsync(session);
             return session;
         }
 
-        public async Task UpdateAsync(Session session) =>
+        public async Task UpdateAsync(CashSession session) =>
             await _context.Sessions.ReplaceOneAsync(s => s.Id == session.Id, session);
 
-        public async Task<List<Session>> GetByTableIdAsync(Guid tableId)
+        public async Task<List<CashSession>> GetByTableIdAsync(Guid tableId)
         {
-            // Usamos _context.Sessions en lugar de _collection
             return await _context.Sessions
-                .Find(s => s.TableId == tableId) // Filtro Lambda directo (más limpio)
-                .SortBy(s => s.StartTime)        // Ordenamos por hora de inicio
+                .Find(s => s.TableId == tableId) 
+                .SortBy(s => s.StartTime)        
                 .ToListAsync();
         }
 
-        public async Task<List<Session>> GetByDayIdAsync(Guid dayId)
+        public async Task<List<CashSession>> GetByDayIdAsync(Guid workingDayId)
         {
             return await _context.Sessions
-                .Find(s => s.DayId == dayId)
+                .Find(s => s.WorkingDayId == workingDayId)
                 .ToListAsync();
         }
     }
